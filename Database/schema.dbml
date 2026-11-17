@@ -1,0 +1,489 @@
+
+Project Orvanta {
+  database_type: 'SQL Server'
+  Note: 'Business Management System - Single Trading Company'
+}
+
+// 1. IDENTITY & USERS
+Table AspNetUsers {
+  Id nvarchar(450) [pk]
+  UserName nvarchar(256)
+  NormalizedUserName nvarchar(256)
+  Email nvarchar(256)
+  NormalizedEmail nvarchar(256)
+  EmailConfirmed bit [not null, default: 0]
+  PasswordHash nvarchar(max)
+  SecurityStamp nvarchar(max)
+  ConcurrencyStamp nvarchar(max)
+  PhoneNumber nvarchar(max)
+  PhoneNumberConfirmed bit [not null, default: 0]
+  TwoFactorEnabled bit [not null, default: 0]
+  LockoutEnd datetimeoffset
+  LockoutEnabled bit [not null, default: 1]
+  AccessFailedCount int [not null, default: 0]
+  FirstName nvarchar(100) [not null]
+  LastName nvarchar(100) [not null]
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+}
+
+Table AspNetRoles {
+  Id nvarchar(450) [pk]
+  Name nvarchar(256)
+  NormalizedName nvarchar(256) [unique]
+  ConcurrencyStamp nvarchar(max)
+}
+
+Table AspNetUserRoles {
+  UserId nvarchar(450) [not null]
+  RoleId nvarchar(450) [not null]
+
+  indexes {
+    (UserId, RoleId) [pk]
+  }
+}
+
+Table AspNetUserClaims {
+  Id int [pk, increment]
+  UserId nvarchar(450) [not null]
+  ClaimType nvarchar(max)
+  ClaimValue nvarchar(max)
+}
+
+Table AspNetRoleClaims {
+  Id int [pk, increment]
+  RoleId nvarchar(450) [not null]
+  ClaimType nvarchar(max)
+  ClaimValue nvarchar(max)
+}
+
+Table AspNetUserLogins {
+  LoginProvider nvarchar(450) [not null]
+  ProviderKey nvarchar(450) [not null]
+  ProviderDisplayName nvarchar(max)
+  UserId nvarchar(450) [not null]
+
+  indexes {
+    (LoginProvider, ProviderKey) [pk]
+  }
+}
+
+Table AspNetUserTokens {
+  UserId nvarchar(450) [not null]
+  LoginProvider nvarchar(450) [not null]
+  Name nvarchar(450) [not null]
+  Value nvarchar(max)
+
+  indexes {
+    (UserId, LoginProvider, Name) [pk]
+  }
+}
+
+// 2. MASTER DATA
+
+Table Categories {
+  Id int [pk, increment]
+  Name nvarchar(150) [not null]
+  Description nvarchar(500)
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+
+  indexes {
+    Name [unique]
+  }
+}
+
+Table Units {
+  Id int [pk, increment]
+  Name nvarchar(50) [not null]
+  Symbol nvarchar(20) [not null]
+  IsActive bit [not null, default: 1]
+
+  indexes {
+    Name [unique]
+    Symbol [unique]
+  }
+}
+
+Table Products {
+  Id int [pk, increment]
+  Name nvarchar(200) [not null]
+  SKU nvarchar(50) [not null]
+  Description nvarchar(1000)
+  CategoryId int [not null]
+  UnitId int [not null]
+  PurchasePrice decimal(18,2) [not null, default: 0]
+  SellingPrice decimal(18,2) [not null, default: 0]
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+
+  indexes {
+    SKU [unique]
+  }
+}
+
+Table Customers {
+  Id int [pk, increment]
+  Code nvarchar(30) [not null]
+  Name nvarchar(200) [not null]
+  Phone nvarchar(30) [not null]
+  Email nvarchar(256)
+  Address nvarchar(500)
+  Notes nvarchar(1000)
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+
+  indexes {
+    Code [unique]
+  }
+}
+
+Table Suppliers {
+  Id int [pk, increment]
+  Code nvarchar(30) [not null]
+  Name nvarchar(200) [not null]
+  Phone nvarchar(30) [not null]
+  Email nvarchar(256)
+  Address nvarchar(500)
+  Notes nvarchar(1000)
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+
+  indexes {
+    Code [unique]
+  }
+}
+
+Table Warehouses {
+  Id int [pk, increment]
+  Code nvarchar(30) [not null]
+  Name nvarchar(150) [not null]
+  Location nvarchar(300)
+  IsActive bit [not null, default: 1]
+  CreatedAt datetime2 [not null]
+  UpdatedAt datetime2
+
+  indexes {
+    Code [unique]
+  }
+}
+
+// 3. INVENTORY
+
+Table InventoryStocks {
+  Id int [pk, increment]
+  ProductId int [not null]
+  WarehouseId int [not null]
+  Quantity decimal(18,3) [not null, default: 0]
+  AverageCost decimal(18,4) [not null, default: 0]
+  RowVersion binary(8) [not null]
+
+  indexes {
+    (ProductId, WarehouseId) [unique]
+  }
+}
+
+Table InventoryTransactions {
+  Id bigint [pk, increment]
+  ProductId int [not null]
+  WarehouseId int [not null]
+  TransactionType nvarchar(30) [not null]
+  Quantity decimal(18,3) [not null]
+  UnitCost decimal(18,4) [not null]
+  TotalCost decimal(18,4) [not null]
+  PurchaseInvoiceItemId int
+  SalesInvoiceItemId int
+  Notes nvarchar(500)
+  CreatedAt datetime2 [not null]
+  CreatedByUserId nvarchar(450) [not null]
+}
+
+// =====================================================
+// 4. SALES
+// =====================================================
+
+Table SalesInvoices {
+  Id int [pk, increment]
+  InvoiceNumber nvarchar(50) [not null]
+  CustomerId int [not null]
+  WarehouseId int [not null]
+  InvoiceDate datetime2 [not null]
+  Status nvarchar(30) [not null]
+  Subtotal decimal(18,2) [not null]
+  DiscountAmount decimal(18,2) [not null, default: 0]
+  TotalAmount decimal(18,2) [not null]
+  Notes nvarchar(1000)
+  LastRejectionReason nvarchar(1000)
+  CreatedByUserId nvarchar(450) [not null]
+  ApprovedByUserId nvarchar(450)
+  CreatedAt datetime2 [not null]
+  SubmittedAt datetime2
+  ApprovedAt datetime2
+  PostedAt datetime2
+  CancelledAt datetime2
+
+  indexes {
+    InvoiceNumber [unique]
+  }
+}
+
+Table SalesInvoiceItems {
+  Id int [pk, increment]
+  SalesInvoiceId int [not null]
+  ProductId int [not null]
+  ProductNameSnapshot nvarchar(200) [not null]
+  SKUSnapshot nvarchar(50) [not null]
+  Quantity decimal(18,3) [not null]
+  UnitPrice decimal(18,2) [not null]
+  UnitCostSnapshot decimal(18,4) [not null]
+  LineTotal decimal(18,2) [not null]
+}
+
+
+// 5. PURCHASES
+
+Table PurchaseInvoices {
+  Id int [pk, increment]
+  InvoiceNumber nvarchar(50) [not null]
+  SupplierId int [not null]
+  WarehouseId int [not null]
+  InvoiceDate datetime2 [not null]
+  Status nvarchar(30) [not null]
+  Subtotal decimal(18,2) [not null]
+  DiscountAmount decimal(18,2) [not null, default: 0]
+  TotalAmount decimal(18,2) [not null]
+  Notes nvarchar(1000)
+  LastRejectionReason nvarchar(1000)
+  CreatedByUserId nvarchar(450) [not null]
+  ApprovedByUserId nvarchar(450)
+  CreatedAt datetime2 [not null]
+  SubmittedAt datetime2
+  ApprovedAt datetime2
+  PostedAt datetime2
+  CancelledAt datetime2
+
+  indexes {
+    InvoiceNumber [unique]
+  }
+}
+
+Table PurchaseInvoiceItems {
+  Id int [pk, increment]
+  PurchaseInvoiceId int [not null]
+  ProductId int [not null]
+  ProductNameSnapshot nvarchar(200) [not null]
+  SKUSnapshot nvarchar(50) [not null]
+  Quantity decimal(18,3) [not null]
+  UnitCost decimal(18,2) [not null]
+  LineTotal decimal(18,2) [not null]
+}
+
+
+// 6. INVOICE APPROVAL HISTORY
+
+Table InvoiceApprovalHistory {
+  Id bigint [pk, increment]
+  InvoiceType nvarchar(20) [not null]
+  InvoiceId int [not null]
+  Action nvarchar(20) [not null]
+  PerformedByUserId nvarchar(450) [not null]
+  PerformedAt datetime2 [not null]
+  RejectionReason nvarchar(1000)
+}
+
+
+// 7. CUSTOMER RECEIPTS
+
+Table CustomerReceipts {
+  Id int [pk, increment]
+  ReceiptNumber nvarchar(50) [not null]
+  CustomerId int [not null]
+  ReceiptDate datetime2 [not null]
+  Amount decimal(18,2) [not null]
+  Status nvarchar(20) [not null]
+  Notes nvarchar(1000)
+  VoidReason nvarchar(1000)
+  CreatedByUserId nvarchar(450) [not null]
+  PostedByUserId nvarchar(450)
+  VoidedByUserId nvarchar(450)
+  CreatedAt datetime2 [not null]
+  PostedAt datetime2
+  VoidedAt datetime2
+
+  indexes {
+    ReceiptNumber [unique]
+  }
+}
+
+Table ReceiptAllocations {
+  Id int [pk, increment]
+  CustomerReceiptId int [not null]
+  SalesInvoiceId int [not null]
+  AllocatedAmount decimal(18,2) [not null]
+}
+
+
+// 8. SUPPLIER PAYMENTS
+Table SupplierPayments {
+  Id int [pk, increment]
+  PaymentNumber nvarchar(50) [not null]
+  SupplierId int [not null]
+  PaymentDate datetime2 [not null]
+  Amount decimal(18,2) [not null]
+  Status nvarchar(20) [not null]
+  Notes nvarchar(1000)
+  VoidReason nvarchar(1000)
+  CreatedByUserId nvarchar(450) [not null]
+  PostedByUserId nvarchar(450)
+  VoidedByUserId nvarchar(450)
+  CreatedAt datetime2 [not null]
+  PostedAt datetime2
+  VoidedAt datetime2
+
+  indexes {
+    PaymentNumber [unique]
+  }
+}
+
+Table PaymentAllocations {
+  Id int [pk, increment]
+  SupplierPaymentId int [not null]
+  PurchaseInvoiceId int [not null]
+  AllocatedAmount decimal(18,2) [not null]
+}
+
+
+// 9. EXPENSES
+
+Table ExpenseCategories {
+  Id int [pk, increment]
+  Name nvarchar(100) [not null]
+  Description nvarchar(500)
+  IsActive bit [not null, default: 1]
+
+  indexes {
+    Name [unique]
+  }
+}
+
+Table Expenses {
+  Id int [pk, increment]
+  ExpenseCategoryId int [not null]
+
+  Description nvarchar(500) [not null]
+  Amount decimal(18,2) [not null]
+  ExpenseDate datetime2 [not null]
+  Status nvarchar(20) [not null]
+
+  Notes nvarchar(1000)
+  VoidReason nvarchar(1000)
+
+  CreatedByUserId nvarchar(450) [not null]
+  PostedByUserId nvarchar(450)
+  VoidedByUserId nvarchar(450)
+
+  CreatedAt datetime2 [not null]
+  PostedAt datetime2
+  VoidedAt datetime2
+}
+
+
+// 10. SYSTEM & AUDITING
+
+Table AuditLogs {
+  Id bigint [pk, increment]
+  UserId nvarchar(450)
+  Action nvarchar(100) [not null]
+  EntityName nvarchar(100) [not null]
+  EntityId nvarchar(100)
+  OldValues nvarchar(max)
+  NewValues nvarchar(max)
+  IpAddress nvarchar(45)
+  CreatedAt datetime2 [not null]
+}
+
+Table CompanySettings {
+  Id int [pk]
+  CompanyName nvarchar(200) [not null]
+  Phone nvarchar(30)
+  Email nvarchar(256)
+  Address nvarchar(500)
+  LogoUrl nvarchar(500)
+  CurrencyCode nvarchar(3) [not null, default: 'EGP']
+  UpdatedAt datetime2
+  UpdatedByUserId nvarchar(450)
+}
+
+
+// 11. RELATIONSHIPS
+
+// Identity
+Ref: AspNetUserRoles.UserId > AspNetUsers.Id
+Ref: AspNetUserRoles.RoleId > AspNetRoles.Id
+Ref: AspNetUserClaims.UserId > AspNetUsers.Id
+Ref: AspNetRoleClaims.RoleId > AspNetRoles.Id
+Ref: AspNetUserLogins.UserId > AspNetUsers.Id
+Ref: AspNetUserTokens.UserId > AspNetUsers.Id
+
+// Master Data
+Ref: Products.CategoryId > Categories.Id
+Ref: Products.UnitId > Units.Id
+
+// Inventory
+Ref: InventoryStocks.ProductId > Products.Id
+Ref: InventoryStocks.WarehouseId > Warehouses.Id
+Ref: InventoryTransactions.ProductId > Products.Id
+Ref: InventoryTransactions.WarehouseId > Warehouses.Id
+Ref: InventoryTransactions.PurchaseInvoiceItemId > PurchaseInvoiceItems.Id
+Ref: InventoryTransactions.SalesInvoiceItemId > SalesInvoiceItems.Id
+Ref: InventoryTransactions.CreatedByUserId > AspNetUsers.Id
+
+// Sales
+Ref: SalesInvoices.CustomerId > Customers.Id
+Ref: SalesInvoices.WarehouseId > Warehouses.Id
+Ref: SalesInvoices.CreatedByUserId > AspNetUsers.Id
+Ref: SalesInvoices.ApprovedByUserId > AspNetUsers.Id
+Ref: SalesInvoiceItems.SalesInvoiceId > SalesInvoices.Id
+Ref: SalesInvoiceItems.ProductId > Products.Id
+
+// Purchases
+Ref: PurchaseInvoices.SupplierId > Suppliers.Id
+Ref: PurchaseInvoices.WarehouseId > Warehouses.Id
+Ref: PurchaseInvoices.CreatedByUserId > AspNetUsers.Id
+Ref: PurchaseInvoices.ApprovedByUserId > AspNetUsers.Id
+Ref: PurchaseInvoiceItems.PurchaseInvoiceId > PurchaseInvoices.Id
+Ref: PurchaseInvoiceItems.ProductId > Products.Id
+
+// Approval History
+Ref: InvoiceApprovalHistory.PerformedByUserId > AspNetUsers.Id
+
+// Customer Receipts
+Ref: CustomerReceipts.CustomerId > Customers.Id
+Ref: CustomerReceipts.CreatedByUserId > AspNetUsers.Id
+Ref: CustomerReceipts.PostedByUserId > AspNetUsers.Id
+Ref: CustomerReceipts.VoidedByUserId > AspNetUsers.Id
+Ref: ReceiptAllocations.CustomerReceiptId > CustomerReceipts.Id
+Ref: ReceiptAllocations.SalesInvoiceId > SalesInvoices.Id
+
+// Supplier Payments
+Ref: SupplierPayments.SupplierId > Suppliers.Id
+Ref: SupplierPayments.CreatedByUserId > AspNetUsers.Id
+Ref: SupplierPayments.PostedByUserId > AspNetUsers.Id
+Ref: SupplierPayments.VoidedByUserId > AspNetUsers.Id
+Ref: PaymentAllocations.SupplierPaymentId > SupplierPayments.Id
+Ref: PaymentAllocations.PurchaseInvoiceId > PurchaseInvoices.Id
+
+// Expenses
+Ref: Expenses.ExpenseCategoryId > ExpenseCategories.Id
+Ref: Expenses.CreatedByUserId > AspNetUsers.Id
+Ref: Expenses.PostedByUserId > AspNetUsers.Id
+Ref: Expenses.VoidedByUserId > AspNetUsers.Id
+
+// System
+Ref: AuditLogs.UserId > AspNetUsers.Id
+Ref: CompanySettings.UpdatedByUserId > AspNetUsers.Id
