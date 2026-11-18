@@ -1,261 +1,99 @@
 # Orvanta – Architecture Overview
 
-## 1. Introduction
-
-Orvanta is a business management system designed for medium-sized trading companies.
-
-The system follows a **Layered Monolithic Architecture** using ASP.NET Core MVC, Entity Framework Core, and SQL Server.
-
-The architecture separates presentation, business logic, and data access responsibilities to improve maintainability, testability, and scalability.
-
-## 2. Architecture Style
-
-**Selected Architecture: Layered Monolithic Architecture**
-
-The application is deployed as one application but internally organized into separate logical layers.
-
-### Main Layers
+## 1. Architecture Style
 
-1. Presentation Layer
-2. Application Layer
-3. Domain Layer
-4. Infrastructure Layer
+Orvanta follows a **Layered Monolithic Architecture** implemented within a single ASP.NET Core MVC project.
 
-## 3. High-Level Architecture
+The application is organized into logical folders, with each folder responsible for a specific part of the system.
 
-```mermaid
-flowchart TD
-    U[Users] --> P[Presentation Layer<br/>ASP.NET Core MVC]
-    P --> A[Application Layer<br/>Services and Business Logic]
-    A --> D[Domain Layer<br/>Entities and Business Rules]
-    A --> I[Infrastructure Layer<br/>Repositories and EF Core]
-    I --> DB[(SQL Server)]
+This approach keeps development straightforward while maintaining separation of responsibilities and clear code organization.
 
-    P --> AUTH[ASP.NET Core Identity]
-    AUTH --> DB
-```
+## 2. Application Layers
 
-## 4. Layer Responsibilities
+The application is organized into the following logical layers:
 
-### 4.1 Presentation Layer
-
-**Technology:** ASP.NET Core MVC, Razor Views, HTML, CSS, JavaScript.
-
-Responsibilities:
-- Handle HTTP requests and responses.
-- Display application pages and forms.
-- Validate incoming user input.
-- Manage navigation between screens.
-- Apply authentication and authorization requirements.
-- Call application services to execute operations.
-
-Controllers must not contain complex business logic or direct database operations.
-
-### 4.2 Application Layer
-
-Responsibilities:
-- Coordinate application use cases.
-- Implement business operations through services.
-- Enforce business rules.
-- Coordinate repositories.
-- Manage transaction boundaries for critical operations.
-- Handle approval and posting workflows.
-- Return appropriate results to controllers.
-
-Examples:
-- SalesInvoiceService
-- PurchaseInvoiceService
-- InventoryService
-- CustomerReceiptService
-- SupplierPaymentService
-- ExpenseService
-- ReportingService
-
-### 4.3 Domain Layer
+### 2.1 Presentation Layer
+Responsible for handling user interactions and displaying application data.
 
-Responsibilities:
-- Define core business entities.
-- Represent business concepts and relationships.
-- Contain domain-related rules where appropriate.
-- Define enums and shared domain types.
-
-Examples:
-- Product
-- Customer
-- Supplier
-- Warehouse
-- InventoryStock
-- InventoryTransaction
-- SalesInvoice
-- PurchaseInvoice
-- CustomerReceipt
-- SupplierPayment
-- Expense
-
-The Domain Layer must not depend on ASP.NET Core MVC, EF Core, or SQL Server.
-
-### 4.4 Infrastructure Layer
-
-Responsibilities:
-- Implement database access.
-- Configure Entity Framework Core.
-- Implement repositories.
-- Manage database migrations.
-- Integrate ASP.NET Core Identity with SQL Server.
-- Provide persistence-related implementations.
+Includes:
+- MVC Controllers
+- Razor Views
+- ViewModels
+- Frontend assets (HTML, CSS, JavaScript)
 
-Examples:
-- ApplicationDbContext
-- Repository implementations
-- Entity configurations
-- Database migrations
-- Identity persistence configuration
+### 2.2 Business Logic Layer
+Responsible for implementing application operations and business rules.
 
-## 5. Dependency Direction
+Includes:
+- Services
+- Service Interfaces
+- DTOs
 
-The application follows these dependency principles:
+### 2.3 Data Access Layer
+Responsible for communicating with the database and retrieving or persisting data.
 
-- Presentation depends on Application.
-- Infrastructure implements persistence requirements used by Application.
-- Application depends on Domain.
-- Domain remains independent of the other layers.
+Includes:
+- Repositories
+- Repository Interfaces
+- Unit of Work
+- Entity Framework Core
+- Database Context
+- Entity Configurations
 
-Infrastructure dependencies are registered through Dependency Injection.
-
-## 6. Request Processing Flow
-
-Typical request flow:
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Controller
-    participant Service
-    participant Repository
-    participant Database
-
-    User->>Controller: HTTP Request
-    Controller->>Service: Execute Use Case
-    Service->>Service: Validate Business Rules
-    Service->>Repository: Read / Write Data
-    Repository->>Database: EF Core Operation
-    Database-->>Repository: Result
-    Repository-->>Service: Data
-    Service-->>Controller: Operation Result
-    Controller-->>User: HTTP Response / View
-```
+### 2.4 Domain Model
+Contains the core business entities and their fundamental properties and relationships.
 
-## 7. Business Transaction Management
-
-Critical business operations must execute within database transactions.
-
-Examples:
-- Posting a sales invoice.
-- Posting a purchase invoice.
-- Posting a customer receipt.
-- Posting a supplier payment.
-- Voiding a posted receipt or payment.
-- Posting an expense.
+Includes:
+- Entities
+- Enums
+- Domain-related definitions
 
-A transaction ensures that related database changes succeed or fail together.
+## 3. Technology Stack
 
-For example, posting a sales invoice must coordinate:
-- Updating warehouse stock.
-- Creating inventory transactions.
-- Calculating cost of goods sold.
-- Updating invoice status.
-- Recording approval/posting information.
+- ASP.NET Core MVC
+- C#
+- Entity Framework Core
+- SQL Server
+- LINQ
+- ASP.NET Core Identity
+- Razor Views
+- HTML, CSS, JavaScript
 
-If any critical operation fails, the transaction must be rolled back.
+## 4. Architectural Principles
 
-## 8. Authentication and Authorization
+The application follows these principles:
 
-Orvanta uses ASP.NET Core Identity.
+- Separation of Concerns
+- Single Responsibility Principle
+- Dependency Injection
+- Repository Pattern
+- Unit of Work Pattern
+- Service Layer Pattern
+- Interface-Based Abstraction
+- Data Integrity
+- Secure Authorization
 
-Authentication:
-- User login and logout.
-- Password management.
-- User account management.
+## 5. Dependency Flow
 
-Authorization:
-- Identity Roles.
-- Authorization Policies.
-- Controller and action-level authorization.
-- Service-level authorization for sensitive operations.
+The logical dependency flow is:
 
-Roles:
-- Admin
-- Manager
-- Accountant
-- SalesEmployee
-- WarehouseEmployee
+Presentation → Business Logic → Data Access
 
-Sensitive operations must be protected at the application/service level, not only by hiding interface elements.
+The Domain Model is used by the other layers as the central representation of business entities.
 
-## 9. Inventory Architecture
+## 6. Architectural Scope
 
-Inventory is tracked separately for each warehouse.
+Orvanta is developed as a single deployable application.
 
-The system uses:
-- InventoryStocks to store current stock and average cost.
-- InventoryTransactions to maintain stock movement history.
-- Weighted Average Costing (WAC) per warehouse.
+The MVP does not use:
+- Microservices
+- CQRS
+- MediatR
+- Distributed Architecture
+- Separate Application Class Libraries
 
-Stock changes are generated by approved and posted business operations.
+These technologies are outside the current implementation scope.
 
-Manual stock adjustments are not supported in the MVP. Opening balances are the initial inventory entry mechanism.
+## 7. Architecture Objective
 
-## 10. Invoice Lifecycle Architecture
-
-Sales and purchase invoices follow this lifecycle:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft
-    Draft --> PendingApproval: Submit
-    PendingApproval --> Posted: Approve
-    PendingApproval --> Rejected: Reject
-    Rejected --> Draft: Edit and Resubmit
-    Posted --> [*]
-```
-
-Business constraints:
-- The invoice creator cannot approve their own invoice.
-- Approval must be performed by another authorized user.
-- Rejection requires a reason.
-- Approval history is preserved.
-- Posted invoices are immutable in the MVP.
-
-## 11. Reporting Architecture
-
-Reporting services retrieve and aggregate data from the application database.
-
-Reports include:
-- Sales reports.
-- Purchase reports.
-- Inventory reports.
-- Customer balances.
-- Supplier balances.
-- Expense reports.
-- Estimated profit reports.
-
-Financial reports are administrative and operational reports, not a full accounting or general ledger system.
-
-## 12. Scalability and Maintainability
-
-The architecture supports future improvements through:
-- Independent service responsibilities.
-- Repository abstractions where useful.
-- Dependency Injection.
-- Centralized business rules.
-- Database indexing and query optimization.
-- Background processing when required.
-- Automated testing.
-
-The MVP remains a single deployable application. Future architectural changes should be based on actual performance or business requirements.
-
-## 13. Summary
-
-Orvanta uses a Layered Monolithic Architecture to maintain a clear separation of responsibilities while avoiding unnecessary infrastructure complexity.
-
-The architecture is designed to support reliable business workflows, inventory accuracy, controlled invoice approval, and maintainable future development.
+The objective is to build a maintainable, organized, and scalable business management application without introducing unnecessary architectural complexity.
