@@ -1,0 +1,731 @@
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Orvanta</title>
+
+    <!-- Luxury Typography: Cormorant Garamond + Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 & Icons -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Orvanta.styles.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --lux-bg: #F5F3EE;
+            --lux-surface: #FFFFFF;
+            --lux-surface-subtle: #FAF9F6;
+            --lux-obsidian: #111317;
+            --lux-obsidian-soft: #1B1E24;
+            --lux-ink: #141619;
+            --lux-muted: #686D76;
+            --lux-gold: #A67C37;
+            --lux-gold-soft: rgba(166, 124, 55, 0.12);
+            --lux-border: rgba(20, 22, 25, 0.08);
+            --lux-radius: 14px;
+            --lux-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --lux-font-serif: 'Cormorant Garamond', Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--lux-font-sans);
+            background-color: var(--lux-bg);
+            color: var(--lux-ink);
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .lux-serif {
+            font-family: var(--lux-font-serif);
+        }
+
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .lux-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Luxury Sidebar */
+        .lux-sidebar {
+            width: 268px;
+            flex-shrink: 0;
+            background: var(--lux-obsidian);
+            color: #E7E5E0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow: hidden;
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1040;
+        }
+
+        .lux-brand {
+            padding: 1.5rem 1.5rem 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lux-brand-link {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #FFFFFF;
+        }
+
+        .lux-brand-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #C49A52 0%, #8C6426 100%);
+            color: #111317;
+            font-family: var(--lux-font-serif);
+            font-weight: 700;
+            font-size: 1.35rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 18px rgba(166, 124, 55, 0.28);
+        }
+
+        .lux-brand-name {
+            font-family: var(--lux-font-serif);
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+
+        .lux-brand-tag {
+            font-size: 0.65rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #C49A52;
+            margin-top: 0.2rem;
+            font-weight: 600;
+        }
+
+        .lux-nav {
+            padding: 1rem 0.9rem 2rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .lux-nav-group {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(231, 229, 224, 0.38);
+            padding: 1.15rem 0.85rem 0.45rem;
+        }
+
+        .lux-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.62rem 0.85rem;
+            border-radius: 10px;
+            color: rgba(231, 229, 224, 0.76);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.15rem;
+            transition: all 0.2s ease;
+        }
+
+            .lux-nav-link i {
+                font-size: 1rem;
+                opacity: 0.85;
+            }
+
+            .lux-nav-link:hover:not(.disabled) {
+                background: rgba(255, 255, 255, 0.05);
+                color: #FFFFFF;
+            }
+
+            .lux-nav-link.active {
+                background: linear-gradient(90deg, rgba(196, 154, 82, 0.18) 0%, rgba(196, 154, 82, 0.04) 100%);
+                color: #F3D59B;
+                font-weight: 600;
+                box-shadow: inset 2px 0 0 #C49A52;
+            }
+
+                .lux-nav-link.active i {
+                    color: #D6AC64;
+                    opacity: 1;
+                }
+
+            .lux-nav-link.disabled {
+                color: rgba(231, 229, 224, 0.28);
+                cursor: default;
+                pointer-events: none;
+            }
+
+        /* Main Area */
+        .lux-main-wrap {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lux-topbar {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--lux-border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .lux-content {
+            padding: 2rem;
+            flex: 1;
+        }
+
+        .lux-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .lux-pretitle {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--lux-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .lux-page-title {
+            font-family: var(--lux-font-serif);
+            font-size: 2.25rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--lux-ink);
+            margin: 0;
+        }
+
+        /* Luxury Cards & Surfaces */
+        .lux-card {
+            background: var(--lux-surface);
+            border: 1px solid var(--lux-border);
+            border-radius: var(--lux-radius);
+            box-shadow: 0 10px 30px -18px rgba(17, 19, 23, 0.14);
+        }
+
+        .lux-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--lux-border);
+            background: transparent;
+        }
+
+        .lux-card-body {
+            padding: 1.5rem;
+        }
+
+        /* Luxury Buttons & Inputs */
+        .btn-lux-primary {
+            background: var(--lux-obsidian);
+            color: #FFFFFF;
+            border: 1px solid var(--lux-obsidian);
+            border-radius: 10px;
+            padding: 0.58rem 1.15rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+            .btn-lux-primary:hover {
+                background: #232730;
+                border-color: #232730;
+                color: #F3D59B;
+                transform: translateY(-1px);
+            }
+
+        .btn-lux-gold {
+            background: linear-gradient(135deg, #B88B3F 0%, #8E6524 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 0.58rem 1.15rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px -8px rgba(142, 101, 36, 0.55);
+            transition: all 0.2s ease;
+        }
+
+            .btn-lux-gold:hover {
+                color: #FFFFFF;
+                filter: brightness(1.05);
+                transform: translateY(-1px);
+            }
+
+        .btn-lux-outline {
+            background: transparent;
+            color: var(--lux-ink);
+            border: 1px solid rgba(20, 22, 25, 0.16);
+            border-radius: 10px;
+            padding: 0.55rem 1.05rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .btn-lux-outline:hover {
+                background: var(--lux-surface-subtle);
+                border-color: rgba(20, 22, 25, 0.3);
+                color: var(--lux-ink);
+            }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid rgba(20, 22, 25, 0.14);
+            padding: 0.62rem 0.85rem;
+            font-size: 0.9rem;
+            background-color: #FFFFFF;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: var(--lux-gold);
+                box-shadow: 0 0 0 3px rgba(166, 124, 55, 0.14);
+            }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: #2B2F36;
+            margin-bottom: 0.4rem;
+        }
+
+        .lux-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lux-gold-soft);
+            color: #8A6222;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(166, 124, 55, 0.25);
+        }
+
+        .lux-footer {
+            padding: 1.25rem 2rem;
+            border-top: 1px solid var(--lux-border);
+            font-size: 0.8rem;
+            color: var(--lux-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Mobile Drawer */
+        .lux-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 19, 23, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1035;
+        }
+
+        @@media (max-width: 991.98px) {
+            .lux-sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+
+                .lux-sidebar.show {
+                    transform: translateX(0);
+                }
+        }
+
+                .lux-sidebar.show {
+                    transform: translateX(0);
+                }
+
+            .lux-backdrop.show {
+                display: block;
+            }
+
+            .lux-topbar, .lux-content, .lux-footer {
+                padding-left: 1.15rem;
+                padding-right: 1.15rem;
+            }
+
+            .lux-page-title {
+                font-size: 1.85rem;
+            }
+        }
+
+        /* =========================================
+           Luxury Sidebar-Matched Scrollbars
+           ========================================= */
+
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(196, 154, 82, 0.45) #111317;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111317;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(196, 154, 82, 0.55) 0%, rgba(140, 101, 38, 0.55) 100%);
+            border-radius: 999px;
+            border: 2px solid #111317;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, #D6AC64 0%, #9E732D 100%);
+                border: 2px solid #111317;
+            }
+
+        ::-webkit-scrollbar-corner {
+            background: #111317;
+        }
+
+        /* Sidebar Navigation Scrollbar */
+        .lux-nav {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(196, 154, 82, 0.35) transparent;
+        }
+
+            .lux-nav::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .lux-nav::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .lux-nav::-webkit-scrollbar-thumb {
+                background: rgba(196, 154, 82, 0.35);
+                border-radius: 999px;
+                border: none;
+            }
+
+                .lux-nav::-webkit-scrollbar-thumb:hover {
+                    background: rgba(214, 172, 100, 0.75);
+                }
+
+        /* Tables Horizontal Scrollbar */
+        .table-responsive {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(196, 154, 82, 0.45) rgba(20, 22, 25, 0.05);
+        }
+
+            .table-responsive::-webkit-scrollbar {
+                height: 6px;
+            }
+
+            .table-responsive::-webkit-scrollbar-thumb {
+                background: rgba(166, 124, 55, 0.42);
+                border-radius: 999px;
+                border: none;
+            }
+
+                .table-responsive::-webkit-scrollbar-thumb:hover {
+                    background: rgba(166, 124, 55, 0.75);
+                }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    <div class="lux-backdrop" id="luxBackdrop"></div>
+
+    <div class="lux-shell">
+        <!-- Sidebar -->
+        <aside class="lux-sidebar" id="luxSidebar">
+            <div class="lux-brand">
+                <a asp-controller="Home" asp-action="Index" class="lux-brand-link">
+                    <span class="lux-brand-mark">O</span>
+                    <div>
+                        <div class="lux-brand-name">Orvanta</div>
+                        <div class="lux-brand-tag">Private Suite</div>
+                    </div>
+                </a>
+                <button type="button" class="btn btn-sm text-white-50 d-lg-none p-1" id="luxSidebarClose" aria-label="Close">
+                    <i class="bi bi-x-lg fs-5"></i>
+                </button>
+            </div>
+
+            <nav class="lux-nav">
+                <a class="lux-nav-link @(currentController == "Home" ? "active" : "")"
+                   asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Overview</span>
+                </a>
+
+                <div class="lux-nav-group">Management</div>
+
+                <a class="lux-nav-link @(currentController == "Categories" ? "active" : "")"
+                   asp-controller="Categories" asp-action="Index">
+                    <i class="bi bi-layers"></i>
+                    <span>Categories</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Units" ? "active" : "")"
+                   asp-controller="Units" asp-action="Index">
+                    <i class="bi bi-rulers"></i>
+                    <span>Units</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Products" ? "active" : "")"
+                   asp-controller="Products" asp-action="Index">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Products</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Customers" ? "active" : "")"
+                   asp-controller="Customers" asp-action="Index">
+                    <i class="bi bi-people"></i>
+                    <span>Customers</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Suppliers" ? "active" : "")"
+                   asp-controller="Suppliers" asp-action="Index">
+                    <i class="bi bi-truck"></i>
+                    <span>Suppliers</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Warehouses" ? "active" : "")"
+                   asp-controller="Warehouses" asp-action="Index">
+                    <i class="bi bi-buildings"></i>
+                    <span>Warehouses</span>
+                </a>
+
+                <div class="lux-nav-group">Operations</div>
+
+                <a class="lux-nav-link @(currentController == "Inventory" ? "active" : "")"
+                   asp-controller="Inventory" asp-action="Index">
+                    <i class="bi bi-archive"></i>
+                    <span>Inventory</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Sales" ? "active" : "")"
+                   asp-controller="Sales" asp-action="Index">
+                    <i class="bi bi-bag-check"></i>
+                    <span>Sales</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Purchases" ? "active" : "")"
+                   asp-controller="Purchases" asp-action="Index">
+                    <i class="bi bi-cart3"></i>
+                    <span>Purchases</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Payments" ? "active" : "")"
+                   asp-controller="Payments" asp-action="Index">
+                    <i class="bi bi-wallet2"></i>
+                    <span>Payments</span>
+                </a>
+
+                <a class="lux-nav-link @(currentController == "Expenses" ? "active" : "")"
+                   asp-controller="Expenses" asp-action="Index">
+                    <i class="bi bi-receipt"></i>
+                    <span>Expenses</span>
+                </a>
+
+                <div class="lux-nav-group">System</div>
+
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="lux-nav-link @(currentController == "UserManagement" ? "active" : "")"
+                       asp-controller="UserManagement" asp-action="Index">
+                        <i class="bi bi-shield-lock"></i>
+                        <span>User Management</span>
+                    </a>
+                }
+
+                <a class="lux-nav-link @(currentController == "Reports" ? "active" : "")"
+                   asp-controller="Reports" asp-action="Index">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Reports</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="lux-main-wrap">
+            <header class="lux-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-lux-outline d-lg-none py-1 px-2" id="luxSidebarOpen" aria-label="Open menu">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <span class="text-secondary small d-none d-sm-inline">
+                        <i class="bi bi-gem me-1" style="color: var(--lux-gold);"></i>
+                        Orvanta Atelier &amp; Operations
+                    </span>
+                </div>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    var userInitial = string.IsNullOrWhiteSpace(User.Identity.Name)
+                    ? "U"
+                    : User.Identity.Name.Substring(0, 1).ToUpperInvariant();
+
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle"
+                           data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--lux-ink);">
+                            <span class="lux-avatar">@userInitial</span>
+                            <div class="d-none d-md-block text-start lh-sm">
+                                <div class="fw-semibold small">@User.Identity.Name</div>
+                                <div style="font-size: 0.72rem; color: var(--lux-muted);">
+                                    @(User.IsInRole("Admin") ? "Executive Admin" : "Member")
+                                </div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" style="border-radius: 12px; min-width: 195px;">
+                            <li>
+                                <a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword">
+                                    <i class="bi bi-key me-2 text-secondary"></i> Change Password
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1" /></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item py-2 text-danger">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Sign Out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </header>
+
+            <main class="lux-content">
+                <div class="lux-page-header">
+                    <div>
+                        @if (ViewData["Subtitle"] != null)
+                        {
+                            <div class="lux-pretitle">@ViewData["Subtitle"]</div>
+                        }
+                        <h1 class="lux-page-title">@ViewData["Title"]</h1>
+                    </div>
+
+                    @if (IsSectionDefined("PageActions"))
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            @await RenderSectionAsync("PageActions", required: false)
+                        </div>
+                    }
+                </div>
+
+                @RenderBody()
+            </main>
+
+            <footer class="lux-footer">
+                <span>&copy; 2026 Orvanta. Crafted for precision.</span>
+                <span class="d-none d-sm-inline">Enterprise Edition</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        (function () {
+            const sidebar = document.getElementById('luxSidebar');
+            const backdrop = document.getElementById('luxBackdrop');
+            const openBtn = document.getElementById('luxSidebarOpen');
+            const closeBtn = document.getElementById('luxSidebarClose');
+
+            function toggleSidebar(show) {
+                if (!sidebar || !backdrop) return;
+                sidebar.classList.toggle('show', show);
+                backdrop.classList.toggle('show', show);
+            }
+
+            openBtn?.addEventListener('click', () => toggleSidebar(true));
+            closeBtn?.addEventListener('click', () => toggleSidebar(false));
+            backdrop?.addEventListener('click', () => toggleSidebar(false));
+
+            if (typeof Swal !== 'undefined') {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3400,
+                    timerProgressBar: true
+                });
+
+                @if (TempData["Success"] != null)
+                {
+                        <text>Toast.fire({ icon: 'success', title: '@TempData["Success"]' });</text>
+                }
+                @if (TempData["SuccessMessage"] != null)
+                {
+                        <text>Toast.fire({ icon: 'success', title: '@TempData["SuccessMessage"]' });</text>
+                }
+                @if (TempData["Error"] != null)
+                {
+                        <text>Toast.fire({ icon: 'error', title: '@TempData["Error"]' });</text>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                        <text>Toast.fire({ icon: 'error', title: '@TempData["ErrorMessage"]' });</text>
+                }
+            }
+        })();
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
