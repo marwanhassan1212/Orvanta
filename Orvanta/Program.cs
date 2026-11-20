@@ -4,6 +4,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Orvanta.Data;
 using Orvanta.Models;
+using Orvanta.Repositories;
+using Orvanta.Repositories.Category;
+using Orvanta.Repositories.Customer;
+using Orvanta.Repositories.Supplier;
+using Orvanta.Repositories.Unit;
+using Orvanta.Repositories.Warehouse;
+using Orvanta.Service.Category;
+using Orvanta.Service.Customer;
+using Orvanta.Service.Supplier;
+using Orvanta.Service.Unit;
+using Orvanta.Services;
 
 namespace Orvanta
 {
@@ -25,13 +36,10 @@ namespace Orvanta
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = true;
                 options.Password.RequireNonAlphanumeric = false;
-
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
                 options.Lockout.AllowedForNewUsers = true;
-
                 options.User.RequireUniqueEmail = true;
-
                 options.SignIn.RequireConfirmedEmail = false;
             }).AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
 
@@ -88,7 +96,28 @@ namespace Orvanta
                 options.AddPolicy("AccountingAccess", policy => policy.RequireRole("Admin", "Accountant"));
                 options.AddPolicy("SalesAccess", policy => policy.RequireRole("Admin", "SalesEmployee"));
                 options.AddPolicy("WarehouseAccess", policy => policy.RequireRole("Admin", "WarehouseEmployee"));
+                options.AddPolicy("SupplierReadAccess", policy => policy.RequireRole("Admin", "Manager", "Accountant"));
             });
+
+
+            // Repositories
+            builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+            builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+            builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+
+            // Services
+            builder.Services.AddScoped<IUnitService, UnitService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
+            builder.Services.AddScoped<ISupplierService, SupplierService>();
+            builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+
+            // UnitOfOWork
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             var app = builder.Build();
 

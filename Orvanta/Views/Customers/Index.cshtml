@@ -1,0 +1,330 @@
+﻿@using System.Collections
+@using Orvanta.ViewModels.Customers
+@model object
+@{
+    ViewData["Title"] = "Customers";
+    ViewData["Subtitle"] = "Partners";
+    Layout = "_AdminLayout";
+
+    var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
+
+    var items = new List<CustomerListViewModel>();
+    int totalCount = 0;
+    int pageNumber = 1;
+    int pageSize = 10;
+    int totalPages = 1;
+
+    if (Model != null)
+    {
+        var type = Model.GetType();
+        var itemsProp = type.GetProperty("Items") ?? type.GetProperty("Data") ?? type.GetProperty("Results");
+
+        if (itemsProp?.GetValue(Model) is IEnumerable rawItems)
+        {
+            foreach (var entry in rawItems)
+            {
+                if (entry is CustomerListViewModel vm)
+                    items.Add(vm);
+            }
+        }
+        else if (Model is IEnumerable directItems)
+        {
+            foreach (var entry in directItems)
+            {
+                if (entry is CustomerListViewModel vm)
+                    items.Add(vm);
+            }
+        }
+
+        object? GetPropVal(string name) => type.GetProperty(name)?.GetValue(Model);
+
+        totalCount = GetPropVal("TotalCount") is int tc ? tc
+                   : GetPropVal("TotalItems") is int ti ? ti
+                   : items.Count;
+
+        pageNumber = GetPropVal("PageNumber") is int pn && pn > 0 ? pn
+                   : GetPropVal("CurrentPage") is int cp && cp > 0 ? cp : 1;
+
+        pageSize = GetPropVal("PageSize") is int ps && ps > 0 ? ps : 10;
+
+        if (GetPropVal("TotalPages") is int tp && tp > 0)
+        {
+            totalPages = tp;
+        }
+        else
+        {
+            totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+        }
+    }
+
+    var searchTerm = Context.Request.Query["SearchTerm"].ToString();
+    var isActiveQuery = Context.Request.Query["IsActive"].ToString();
+    var sortBy = string.IsNullOrWhiteSpace(Context.Request.Query["SortBy"]) ? "name" : Context.Request.Query["SortBy"].ToString();
+    var sortDirection = string.IsNullOrWhiteSpace(Context.Request.Query["SortDirection"]) ? "asc" : Context.Request.Query["SortDirection"].ToString();
+
+    var activeInPage = items.Count(c => c.IsActive);
+    var inactiveInPage = items.Count - activeInPage;
+}
+
+@if (canManage)
+{
+    @section PageActions {
+        <a asp-controller="Customers" asp-action="Create" class="btn btn-gold-cta">
+            <i class="bi bi-plus-lg me-1"></i> Add Customer
+        </a>
+    }
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Total Customers</div>
+                <div class="fs-2 fw-bold tabular-num mt-1">@totalCount</div>
+            </div>
+            <span class="summary-badge"><i class="bi bi-people"></i></span>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Active (Current View)</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-success">@activeInPage</div>
+            </div>
+            <span class="summary-badge summary-badge-ok"><i class="bi bi-check2-circle"></i></span>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Inactive (Current View)</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-danger">@inactiveInPage</div>
+            </div>
+            <span class="summary-badge summary-badge-muted"><i class="bi bi-slash-circle"></i></span>
+        </div>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-head">
+        <form asp-controller="Customers" asp-action="Index" method="get" id="customerFilterForm"
+              class="d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between gap-2">
+            <div class="d-flex flex-wrap flex-md-nowrap align-items-center gap-2 flex-grow-1">
+                <input type="text"
+                       name="SearchTerm"
+                       value="@searchTerm"
+                       class="form-control"
+                       style="min-width: 220px;"
+                       placeholder="Search name, phone, or email..." />
+
+                <select name="IsActive" class="form-select flex-shrink-0" style="width: 155px;">
+                    <option value="">All Statuses</option>
+                    <option value="true" selected="@(isActiveQuery == "true" ? "selected" : null)">Active</option>
+                    <option value="false" selected="@(isActiveQuery == "false" ? "selected" : null)">Inactive</option>
+                </select>
+
+                <select name="SortBy" class="form-select flex-shrink-0" style="width: 155px;">
+                    <option value="name" selected="@(sortBy == "name" ? "selected" : null)">Sort: Name</option>
+                    <option value="createdat" selected="@(sortBy == "createdat" ? "selected" : null)">Sort: Joined</option>
+                </select>
+
+                <select name="SortDirection" class="form-select flex-shrink-0" style="width: 120px;">
+                    <option value="asc" selected="@(sortDirection == "asc" ? "selected" : null)">Asc</option>
+                    <option value="desc" selected="@(sortDirection == "desc" ? "selected" : null)">Desc</option>
+                </select>
+
+                <input type="hidden" name="PageNumber" id="customerPageNumber" value="1" />
+                <input type="hidden" name="PageSize" value="@pageSize" />
+
+                <button type="submit" class="btn btn-primary-dark flex-shrink-0">Filter</button>
+                <a asp-controller="Customers" asp-action="Index" class="btn btn-subtle flex-shrink-0">Reset</a>
+            </div>
+
+            <span class="text-secondary small tabular-num text-nowrap ms-lg-2">@totalCount records</span>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table grid-table mb-0" id="customersTable">
+            <thead>
+                <tr>
+                    <th class="ps-4">Customer</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Added</th>
+                    <th>Status</th>
+                    <th class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!items.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-secondary py-5">No customers found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in items)
+                    {
+                        var initials = string.Join("",
+                        (item.Name ?? "C")
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2)
+                        .Select(s => char.ToUpperInvariant(s[0])));
+
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="profile-chip">@initials</span>
+                                    <span class="fw-semibold">@item.Name</span>
+                                </div>
+                            </td>
+                            <td class="tabular-num @(string.IsNullOrWhiteSpace(item.Phone) ? "text-secondary" : "")">
+                                @(string.IsNullOrWhiteSpace(item.Phone) ? "—" : item.Phone)
+                            </td>
+                            <td class="text-secondary">
+                                @(string.IsNullOrWhiteSpace(item.Email) ? "—" : item.Email)
+                            </td>
+                            <td class="text-secondary small tabular-num">
+                                @item.CreatedAt.ToString("yyyy-MM-dd")
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="state-pill state-active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="state-pill state-inactive">Inactive</span>
+                                }
+                            </td>
+                            <td class="pe-4 text-end">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <a asp-controller="Customers"
+                                       asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="action-btn"
+                                       title="Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    @if (canManage)
+                                    {
+                                        <a asp-controller="Customers"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="action-btn"
+                                           title="Edit">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+
+                                        <form asp-controller="Customers"
+                                              asp-action="ToggleStatus"
+                                              asp-route-id="@item.Id"
+                                              method="post"
+                                              class="d-inline m-0 js-toggle-customer"
+                                              data-active="@item.IsActive.ToString().ToLower()">
+                                            @Html.AntiForgeryToken()
+                                            @if (item.IsActive)
+                                            {
+                                                <button type="submit"
+                                                        class="action-btn action-btn-danger"
+                                                        title="Deactivate">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit"
+                                                        class="action-btn action-btn-success"
+                                                        title="Activate">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            }
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top"
+             style="border-color: var(--hairline); background-color: var(--bg-elevated);">
+            <div class="text-secondary small tabular-num">
+                Page @pageNumber of @totalPages
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <button type="button"
+                        class="btn btn-subtle btn-sm js-cust-page"
+                        data-page="@(pageNumber - 1)"
+                        @(pageNumber <= 1 ? "disabled" : null)>
+                    Previous
+                </button>
+
+                @for (var p = 1; p <= totalPages; p++)
+                {
+                    <button type="button"
+                            class="btn btn-sm js-cust-page @(p == pageNumber ? "btn-primary-dark" : "btn-subtle")"
+                            data-page="@p">
+                        @p
+                    </button>
+                }
+
+                <button type="button"
+                        class="btn btn-subtle btn-sm js-cust-page"
+                        data-page="@(pageNumber + 1)"
+                        @(pageNumber >= totalPages ? "disabled" : null)>
+                    Next
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const filterForm = document.getElementById('customerFilterForm');
+            const pageInput = document.getElementById('customerPageNumber');
+
+            document.querySelectorAll('.js-cust-page').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const targetPage = this.getAttribute('data-page');
+                    if (!targetPage || !filterForm || !pageInput) return;
+                    pageInput.value = targetPage;
+                    filterForm.submit();
+                });
+            });
+
+            document.querySelectorAll('.js-toggle-customer').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const active = form.getAttribute('data-active') === 'true';
+                    if (typeof Swal === 'undefined') {
+                        form.submit();
+                        return;
+                    }
+                    Swal.fire({
+                        title: active ? 'Deactivate customer?' : 'Activate customer?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: active ? '#b02a37' : '#111317',
+                        confirmButtonText: 'Confirm'
+                    }).then(function (res) {
+                        if (res.isConfirmed) form.submit();
+                    });
+                });
+            });
+        })();
+    </script>
+}

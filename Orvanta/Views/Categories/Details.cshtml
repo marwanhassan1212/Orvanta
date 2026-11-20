@@ -1,0 +1,80 @@
+﻿@model Orvanta.ViewModels.Categories.CategoryDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Subtitle"] = "Categories";
+    Layout = "_AdminLayout";
+
+    var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
+}
+
+@section PageActions {
+    <a asp-controller="Categories" asp-action="Index" class="btn btn-subtle">Back</a>
+    @if (canManage)
+    {
+        <a asp-controller="Categories" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+    }
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+        <div class="data-card">
+            <div class="data-card-head d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="h6 fw-semibold mb-0">Category Details</h2>
+                    <div class="text-secondary small">Catalog classification metadata and product count</div>
+                </div>
+                @if (Model.IsActive)
+                {
+                    <span class="state-pill state-active">Active</span>
+                }
+                else
+                {
+                    <span class="state-pill state-inactive">Inactive</span>
+                }
+            </div>
+
+            <div class="data-card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Category Name</div>
+                            <div class="fw-semibold">@Model.Name</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Linked Products</div>
+                            <div class="fs-5 fw-bold tabular-num">@Model.ProductsCount</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-row-box">
+                            <div class="text-secondary small mb-1">Description</div>
+                            <div class="@(string.IsNullOrWhiteSpace(Model.Description) ? "text-secondary fst-italic small" : "")">
+                                @(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Created At</div>
+                            <div class="small fw-medium tabular-num">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Last Updated</div>
+                            <div class="small fw-medium tabular-num">
+                                @(Model.UpdatedAt.HasValue? Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm") : "—")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

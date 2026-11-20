@@ -1,0 +1,53 @@
+﻿@model Orvanta.ViewModels.Units.UnitCreateViewModel
+@{
+    ViewData["Title"] = "Add Unit";
+    ViewData["Subtitle"] = "Units";
+    Layout = "_AdminLayout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+        <div class="data-card">
+            <div class="data-card-head">
+                <h2 class="h6 fw-semibold mb-0">Create Measurement Unit</h2>
+                <div class="text-secondary small">Add a unit name and short symbol</div>
+            </div>
+            <div class="data-card-body">
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form asp-controller="Units" asp-action="Create" method="post" autocomplete="off">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Symbol" class="form-label"></label>
+                        <input asp-for="Symbol" class="form-control" />
+                        <span asp-validation-for="Symbol" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="Units" asp-action="Index" class="btn btn-subtle">Cancel</a>
+                        <button type="submit" class="btn btn-primary-dark">Save Unit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

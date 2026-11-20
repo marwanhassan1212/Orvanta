@@ -1,0 +1,98 @@
+﻿@model Orvanta.ViewModels.Products.ProductUpdateViewModel
+@{
+    ViewData["Title"] = "Edit Product";
+    ViewData["Subtitle"] = "Products";
+    Layout = "_AdminLayout";
+
+    var categories = ViewBag.Categories as SelectList ?? new SelectList(Enumerable.Empty<object>());
+    var units = ViewBag.Units as SelectList ?? new SelectList(Enumerable.Empty<object>());
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="data-card">
+            <div class="data-card-head">
+                <h2 class="h6 fw-semibold mb-0">Edit Product</h2>
+                <div class="text-secondary small">Update product classification, pricing, and details</div>
+            </div>
+
+            <div class="data-card-body">
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+                {
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form asp-controller="Products" asp-action="Edit" asp-route-id="@Model.Id" method="post" autocomplete="off">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label asp-for="Name" class="form-label"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="SKU" class="form-label"></label>
+                            <input asp-for="SKU" class="form-control" />
+                            <span asp-validation-for="SKU" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="CategoryId" class="form-label">Category</label>
+                            <select asp-for="CategoryId" asp-items="categories" class="form-select">
+                                <option value="">Select category</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label asp-for="UnitId" class="form-label">Unit</label>
+                            <select asp-for="UnitId" asp-items="units" class="form-select">
+                                <option value="">Select unit</option>
+                            </select>
+                            <span asp-validation-for="UnitId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="PurchasePrice" class="form-label"></label>
+                            <input asp-for="PurchasePrice" type="number" step="0.01" min="0" class="form-control tabular-num" />
+                            <span asp-validation-for="PurchasePrice" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label asp-for="SellingPrice" class="form-label"></label>
+                            <input asp-for="SellingPrice" type="number" step="0.01" min="0" class="form-control tabular-num" />
+                            <span asp-validation-for="SellingPrice" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="Products" asp-action="Index" class="btn btn-subtle">Cancel</a>
+                        <button type="submit" class="btn btn-primary-dark">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

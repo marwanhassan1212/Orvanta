@@ -1,47 +1,31 @@
 ﻿@model Orvanta.ViewModels.Users.EditUserViewModel
 @{
     ViewData["Title"] = "Edit User";
-    ViewData["Subtitle"] = "User Management";
+    ViewData["Subtitle"] = "Users";
     Layout = "_AdminLayout";
 
-    var availableRoles = new[]
-    {
-        "Admin",
-        "Manager",
-        "Accountant",
-        "SalesEmployee",
-        "WarehouseEmployee"
-    };
-}
-
-@section PageActions {
-    <a asp-controller="UserManagement" asp-action="Index" class="btn btn-lux-outline">
-        <i class="bi bi-arrow-left me-1"></i> Back to Directory
-    </a>
+    var roles = new[] { "Admin", "Manager", "Accountant", "SalesEmployee", "WarehouseEmployee" };
 }
 
 <div class="row justify-content-center">
-    <div class="col-12 col-lg-8 col-xl-7">
-        <div class="lux-card">
-            <div class="lux-card-header">
+    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+        <div class="data-card">
+            <div class="data-card-head">
                 <h2 class="h6 fw-semibold mb-0">Edit Account Details</h2>
-                <div class="text-secondary small">Modify profile information, role assignment, or account status</div>
+                <div class="text-secondary small">Update profile information, role assignment, and status</div>
             </div>
-
-            <div class="lux-card-body">
+            <div class="data-card-body">
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
-                    <div class="alert alert-danger small mb-3" style="border-radius: 10px;" role="alert">
-                        <ul class="mb-0 ps-3">
-                            @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
-                            {
-                                <li>@error.ErrorMessage</li>
-                            }
-                        </ul>
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
                     </div>
                 }
 
-                <form asp-controller="UserManagement" asp-action="Edit" method="post" autocomplete="off" id="editUserForm">
+                <form asp-controller="UserManagement" asp-action="Edit" method="post" autocomplete="off">
                     @Html.AntiForgeryToken()
                     <input asp-for="UserId" type="hidden" />
 
@@ -51,7 +35,6 @@
                             <input asp-for="FirstName" class="form-control" />
                             <span asp-validation-for="FirstName" class="text-danger small"></span>
                         </div>
-
                         <div class="col-sm-6">
                             <label asp-for="LastName" class="form-label"></label>
                             <input asp-for="LastName" class="form-control" />
@@ -68,8 +51,8 @@
                     <div class="mb-3">
                         <label asp-for="Role" class="form-label"></label>
                         <select asp-for="Role" class="form-select">
-                            <option value="">Select role...</option>
-                            @foreach (var role in availableRoles)
+                            <option value="">Select role</option>
+                            @foreach (var role in roles)
                             {
                                 <option value="@role">@role</option>
                             }
@@ -77,23 +60,16 @@
                         <span asp-validation-for="Role" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-4 p-3" style="background-color: #FAF9F6; border: 1px solid rgba(20, 22, 25, 0.08); border-radius: 12px;">
-                        <div class="form-check form-switch m-0">
+                    <div class="info-row-box mb-4">
+                        <div class="form-check form-switch mb-0">
                             <input asp-for="IsActive" type="checkbox" class="form-check-input" />
-                            <label asp-for="IsActive" class="form-check-label fw-semibold small">Active Account</label>
+                            <label asp-for="IsActive" class="form-check-label small fw-semibold"></label>
                         </div>
-                        <div class="text-secondary small mt-1">
-                            Deactivating an account immediately revokes sign-in access and invalidates active sessions.
-                        </div>
-                        <span asp-validation-for="IsActive" class="text-danger small"></span>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 pt-3 border-top" style="border-color: rgba(20, 22, 25, 0.08) !important;">
-                        <a asp-controller="UserManagement" asp-action="Index" class="btn btn-lux-outline">Cancel</a>
-                        <button type="submit" class="btn btn-lux-primary" id="editUserBtn">
-                            <span class="spinner-border spinner-border-sm me-2 d-none" id="editUserSpinner" role="status"></span>
-                            Save Changes
-                        </button>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="UserManagement" asp-action="Index" class="btn btn-subtle">Cancel</a>
+                        <button type="submit" class="btn btn-primary-dark">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -103,18 +79,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        (function () {
-            const form = document.getElementById('editUserForm');
-            const btn = document.getElementById('editUserBtn');
-            const spinner = document.getElementById('editUserSpinner');
-
-            form?.addEventListener('submit', function () {
-                if ($(form).valid() && btn && spinner) {
-                    btn.disabled = true;
-                    spinner.classList.remove('d-none');
-                }
-            });
-        })();
-    </script>
 }

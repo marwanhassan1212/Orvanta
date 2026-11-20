@@ -1,0 +1,75 @@
+﻿@model Orvanta.ViewModels.Warehouses.WarehouseDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Subtitle"] = "Warehouses";
+    Layout = "_AdminLayout";
+}
+
+@section PageActions {
+    <a asp-controller="Warehouses" asp-action="Index" class="btn btn-subtle">Back</a>
+    <a asp-controller="Warehouses" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="data-card">
+            <div class="data-card-head d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="h6 fw-semibold mb-0">Warehouse Details</h2>
+                    <div class="text-secondary small">Facility code, location, and operational status</div>
+                </div>
+                @if (Model.IsActive)
+                {
+                    <span class="state-pill state-active">Active</span>
+                }
+                else
+                {
+                    <span class="state-pill state-inactive">Inactive</span>
+                }
+            </div>
+
+            <div class="data-card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Warehouse Name</div>
+                            <div class="fw-semibold">@Model.Name</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Warehouse Code</div>
+                            <div><span class="badge-role tabular-num">@Model.Code</span></div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-row-box">
+                            <div class="text-secondary small mb-1">Address</div>
+                            <div class="@(string.IsNullOrWhiteSpace(Model.Address) ? "text-secondary fst-italic small" : "")">
+                                @(string.IsNullOrWhiteSpace(Model.Address) ? "No address recorded." : Model.Address)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Created At</div>
+                            <div class="small fw-medium tabular-num">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Last Updated</div>
+                            <div class="small fw-medium tabular-num">
+                                @(Model.UpdatedAt.HasValue? Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm") : "—")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -16,6 +16,9 @@ namespace Orvanta.Data.Configurations
             builder.Property(u => u.Symbol).IsRequired().HasMaxLength(20);
             builder.Property(u => u.IsActive).IsRequired();
 
+            builder.HasIndex(x => x.Name).IsUnique();
+            builder.HasIndex(x => x.Symbol).IsUnique();
+
             builder.HasMany(u => u.Products).WithOne(p => p.Unit).HasForeignKey(p => p.UnitId).OnDelete(DeleteBehavior.Restrict);
         }
     }

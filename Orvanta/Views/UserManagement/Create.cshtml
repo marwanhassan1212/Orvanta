@@ -1,73 +1,56 @@
 ﻿@model Orvanta.ViewModels.Users.CreateUserViewModel
 @{
-    ViewData["Title"] = "New User";
-    ViewData["Subtitle"] = "User Management";
+    ViewData["Title"] = "Add User";
+    ViewData["Subtitle"] = "Users";
     Layout = "_AdminLayout";
 
     var roles = ViewBag.Roles as IEnumerable<string> ?? Enumerable.Empty<string>();
 }
 
-@section PageActions {
-    <a asp-controller="UserManagement" asp-action="Index" class="btn btn-lux-outline">
-        <i class="bi bi-arrow-left me-1"></i> Back to Directory
-    </a>
-}
-
 <div class="row justify-content-center">
-    <div class="col-12 col-lg-8 col-xl-7">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success border-0 shadow-sm mb-3" style="border-radius: 12px;" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+        <div class="data-card">
+            <div class="data-card-head">
+                <h2 class="h6 fw-semibold mb-0">New Staff Account</h2>
+                <div class="text-secondary small">Create user credentials and assign access role</div>
             </div>
-        }
-
-        <div class="lux-card">
-            <div class="lux-card-header">
-                <h2 class="h6 fw-semibold mb-0">Create User Account</h2>
-                <div class="text-secondary small">Provision credentials and assign role permissions</div>
-            </div>
-
-            <div class="lux-card-body">
+            <div class="data-card-body">
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
-                    <div class="alert alert-danger small mb-3" style="border-radius: 10px;" role="alert">
-                        <ul class="mb-0 ps-3">
-                            @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
-                            {
-                                <li>@error.ErrorMessage</li>
-                            }
-                        </ul>
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
                     </div>
                 }
 
-                <form asp-controller="UserManagement" asp-action="Create" method="post" autocomplete="off" id="createUserForm">
+                <form asp-controller="UserManagement" asp-action="Create" method="post" autocomplete="off">
                     @Html.AntiForgeryToken()
 
                     <div class="row g-3 mb-3">
                         <div class="col-sm-6">
                             <label asp-for="FirstName" class="form-label"></label>
-                            <input asp-for="FirstName" class="form-control" placeholder="First name" autofocus />
+                            <input asp-for="FirstName" class="form-control" />
                             <span asp-validation-for="FirstName" class="text-danger small"></span>
                         </div>
-
                         <div class="col-sm-6">
                             <label asp-for="LastName" class="form-label"></label>
-                            <input asp-for="LastName" class="form-control" placeholder="Last name" />
+                            <input asp-for="LastName" class="form-control" />
                             <span asp-validation-for="LastName" class="text-danger small"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" placeholder="name@orvanta.com" />
+                        <input asp-for="Email" class="form-control" />
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Role" class="form-label"></label>
                         <select asp-for="Role" class="form-select">
-                            <option value="">Select role...</option>
+                            <option value="">Select role</option>
                             @foreach (var role in roles)
                             {
                                 <option value="@role">@role</option>
@@ -78,22 +61,13 @@
 
                     <div class="mb-4">
                         <label asp-for="Password" class="form-label"></label>
-                        <div class="input-group">
-                            <input asp-for="Password" id="createPassInput" class="form-control" placeholder="Minimum 12 characters" style="border-right: 0;" />
-                            <button type="button" class="btn btn-outline-secondary" id="toggleCreatePass" tabindex="-1"
-                                    style="border-radius: 0 10px 10px 0; border-color: rgba(20, 22, 25, 0.14);">
-                                <i class="bi bi-eye" id="toggleCreatePassIcon"></i>
-                            </button>
-                        </div>
+                        <input asp-for="Password" class="form-control" />
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 pt-3 border-top" style="border-color: rgba(20, 22, 25, 0.08) !important;">
-                        <a asp-controller="UserManagement" asp-action="Index" class="btn btn-lux-outline">Cancel</a>
-                        <button type="submit" class="btn btn-lux-primary" id="createUserBtn">
-                            <span class="spinner-border spinner-border-sm me-2 d-none" id="createUserSpinner" role="status"></span>
-                            Create Account
-                        </button>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="UserManagement" asp-action="Index" class="btn btn-subtle">Cancel</a>
+                        <button type="submit" class="btn btn-primary-dark">Save User</button>
                     </div>
                 </form>
             </div>
@@ -103,28 +77,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        (function () {
-            const toggle = document.getElementById('toggleCreatePass');
-            const input = document.getElementById('createPassInput');
-            const icon = document.getElementById('toggleCreatePassIcon');
-            const form = document.getElementById('createUserForm');
-            const btn = document.getElementById('createUserBtn');
-            const spinner = document.getElementById('createUserSpinner');
-
-            toggle?.addEventListener('click', function () {
-                if (!input || !icon) return;
-                const isPass = input.type === 'password';
-                input.type = isPass ? 'text' : 'password';
-                icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
-            });
-
-            form?.addEventListener('submit', function () {
-                if ($(form).valid() && btn && spinner) {
-                    btn.disabled = true;
-                    spinner.classList.remove('d-none');
-                }
-            });
-        })();
-    </script>
 }

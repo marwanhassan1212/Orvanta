@@ -16,166 +16,127 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <style>
-        :root {
-            --lux-bg: #F5F3EE;
-            --lux-surface: #FFFFFF;
-            --lux-obsidian: #111317;
-            --lux-ink: #141619;
-            --lux-muted: #686D76;
-            --lux-gold: #A67C37;
-            --lux-border: rgba(20, 22, 25, 0.08);
-            --lux-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            --lux-font-serif: 'Cormorant Garamond', Georgia, serif;
+        .auth-stage {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
         }
 
-        body {
-            font-family: var(--lux-font-sans);
-            background: radial-gradient(circle at top right, rgba(166, 124, 55, 0.09), transparent 45%), var(--lux-bg);
-            color: var(--lux-ink);
-            min-height: 100vh;
+        .auth-brand-pane {
+            background: linear-gradient(160deg, #151921 0%, #0C0E12 100%);
+            color: #F5F2EB;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-right: 1px solid rgba(212, 170, 94, 0.16);
+        }
+
+        .auth-form-pane {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
+            padding: 2rem;
         }
 
-        .auth-card {
+        .auth-box {
             width: 100%;
-            max-width: 430px;
-            background: var(--lux-surface);
-            border: 1px solid var(--lux-border);
-            border-radius: 18px;
-            padding: 2.5rem 2.25rem;
-            box-shadow: 0 24px 60px -24px rgba(17, 19, 23, 0.18);
+            max-width: 410px;
+            background: var(--bg-surface);
+            border: 1px solid var(--hairline);
+            border-radius: var(--radius-card);
+            padding: 2.25rem 2rem;
+            box-shadow: var(--shadow-float);
         }
 
-        .auth-brand {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-mark {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #C49A52 0%, #8C6426 100%);
-            color: #111317;
-            font-family: var(--lux-font-serif);
-            font-weight: 700;
-            font-size: 1.7rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.75rem;
-        }
-
-        .auth-title {
-            font-family: var(--lux-font-serif);
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1.1;
-            margin: 0;
-        }
-
-        .auth-subtitle {
-            font-size: 0.875rem;
-            color: var(--lux-muted);
-            margin-top: 0.35rem;
-        }
-
-        .form-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #2B2F36;
-        }
-
-        .form-control {
-            border-radius: 10px;
-            border: 1px solid rgba(20, 22, 25, 0.14);
-            padding: 0.65rem 0.9rem;
-            font-size: 0.9rem;
-        }
-
-            .form-control:focus {
-                border-color: var(--lux-gold);
-                box-shadow: 0 0 0 3px rgba(166, 124, 55, 0.14);
+        @@media (max-width: 991.98px) {
+            .auth-stage {
+                grid-template-columns: 1fr;
             }
 
-        .btn-auth {
-            width: 100%;
-            background: var(--lux-obsidian);
-            color: #FFFFFF;
-            border: none;
-            border-radius: 10px;
-            padding: 0.72rem 1.2rem;
-            font-weight: 600;
-            font-size: 0.92rem;
-            transition: all 0.2s ease;
-        }
-
-            .btn-auth:hover {
-                background: #232730;
-                color: #F3D59B;
+            .auth-brand-pane {
+                display: none;
             }
+        }
     </style>
 </head>
 <body>
-    <div class="auth-card">
-        <div class="auth-brand">
-            <div class="auth-mark">O</div>
-            <h1 class="auth-title">Welcome back</h1>
-            <p class="auth-subtitle">Sign in to your Orvanta workspace</p>
+    <div class="auth-stage">
+        <div class="auth-brand-pane">
+            <div class="brand-mark-wrap">
+                <span class="brand-emblem">O</span>
+                <div>
+                    <div class="brand-wordmark">Orvanta</div>
+                    <div class="brand-edition">Enterprise ERP</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="page-eyebrow mb-2" style="color: var(--gold-bright);">Operations &amp; Control</div>
+                <h2 class="font-display fw-bold mb-3" style="font-size: 2.75rem; line-height: 1.1; color: #FFFFFF;">
+                    Precision in every movement of stock and sale.
+                </h2>
+                <p class="mb-0" style="color: rgba(245, 242, 235, 0.68); max-width: 430px; line-height: 1.65;">
+                    Manage inventory, warehouses, purchasing, and sales operations from a unified workspace.
+                </p>
+            </div>
+
+            <div class="small" style="color: rgba(245, 242, 235, 0.45);">
+                &copy; 2026 Orvanta
+            </div>
         </div>
 
-        @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
-        {
-            <div class="alert alert-danger py-2 px-3 small mb-3" style="border-radius: 10px;" role="alert">
-                @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+        <div class="auth-form-pane">
+            <div class="auth-box">
+                <div class="mb-4">
+                    <div class="page-eyebrow">Welcome back</div>
+                    <h1 class="font-display fw-bold mb-1" style="font-size: 2.15rem;">Sign in</h1>
+                    <p class="text-secondary small mb-0">Enter your credentials to access your workspace.</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
-                    <div>@error.ErrorMessage</div>
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
                 }
+
+                <form asp-controller="Account" asp-action="Login" method="post" autocomplete="off">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="ReturnUrl" type="hidden" />
+
+                    <div class="mb-3">
+                        <label asp-for="LoginIdentifier" class="form-label"></label>
+                        <input asp-for="LoginIdentifier" class="form-control" autofocus />
+                        <span asp-validation-for="LoginIdentifier" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-group">
+                            <input asp-for="Password" id="loginPassword" class="form-control" style="border-right: 0;" />
+                            <button type="button" class="btn btn-subtle" id="toggleLoginPass" tabindex="-1"
+                                    style="border-radius: 0 var(--radius-control) var(--radius-control) 0;">
+                                <i class="bi bi-eye" id="loginPassIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small text-secondary"></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold-cta w-100 py-2">Sign In</button>
+                </form>
             </div>
-        }
-
-        <form asp-controller="Account" asp-action="Login" method="post" autocomplete="off" id="loginForm">
-            @Html.AntiForgeryToken()
-            <input asp-for="ReturnUrl" type="hidden" />
-
-            <div class="mb-3">
-                <label asp-for="LoginIdentifier" class="form-label"></label>
-                <input asp-for="LoginIdentifier" class="form-control" placeholder="name@company.com or username" autofocus />
-                <span asp-validation-for="LoginIdentifier" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <div class="input-group">
-                    <input asp-for="Password" id="loginPassword" class="form-control" placeholder="Enter your password" style="border-right: 0;" />
-                    <button type="button" class="btn btn-outline-secondary" id="toggleLoginPassword" tabindex="-1"
-                            style="border-radius: 0 10px 10px 0; border-color: rgba(20, 22, 25, 0.14);">
-                        <i class="bi bi-eye" id="toggleLoginPasswordIcon"></i>
-                    </button>
-                </div>
-                <span asp-validation-for="Password" class="text-danger small"></span>
-            </div>
-
-            <div class="mb-4">
-                <div class="form-check">
-                    <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label small text-secondary"></label>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-auth" id="loginSubmitBtn">
-                <span class="spinner-border spinner-border-sm me-2 d-none" id="loginSpinner" role="status"></span>
-                <span id="loginBtnText">Sign In</span>
-            </button>
-        </form>
-
-        <div class="text-center mt-4" style="font-size: 0.78rem; color: var(--lux-muted);">
-            &copy; 2026 Orvanta. All rights reserved.
         </div>
     </div>
 
@@ -183,27 +144,15 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
-            const toggleBtn = document.getElementById('toggleLoginPassword');
-            const passInput = document.getElementById('loginPassword');
-            const icon = document.getElementById('toggleLoginPasswordIcon');
-            const form = document.getElementById('loginForm');
-            const btn = document.getElementById('loginSubmitBtn');
-            const spinner = document.getElementById('loginSpinner');
-            const btnText = document.getElementById('loginBtnText');
+            const btn = document.getElementById('toggleLoginPass');
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('loginPassIcon');
 
-            toggleBtn?.addEventListener('click', function () {
-                if (!passInput || !icon) return;
-                const isPass = passInput.type === 'password';
-                passInput.type = isPass ? 'text' : 'password';
+            btn?.addEventListener('click', function () {
+                if (!input || !icon) return;
+                const isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
                 icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
-            });
-
-            form?.addEventListener('submit', function () {
-                if ($(form).valid() && btn && spinner && btnText) {
-                    btn.disabled = true;
-                    spinner.classList.remove('d-none');
-                    btnText.textContent = 'Signing in...';
-                }
             });
         })();
     </script>

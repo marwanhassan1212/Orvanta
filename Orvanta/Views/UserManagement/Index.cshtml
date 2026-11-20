@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Orvanta.ViewModels.Users.UserListViewModel>
 @{
-    ViewData["Title"] = "User Management";
-    ViewData["Subtitle"] = "Administration & Roles";
+    ViewData["Title"] = "Users";
+    ViewData["Subtitle"] = "Administration";
     Layout = "_AdminLayout";
 
     var totalUsers = Model.Count();
@@ -10,152 +10,111 @@
 }
 
 @section PageActions {
-    <a asp-controller="UserManagement" asp-action="Create" class="btn btn-lux-gold">
-        <i class="bi bi-person-plus me-1"></i> New User
+    <a asp-controller="UserManagement" asp-action="Create" class="btn btn-gold-cta">
+        <i class="bi bi-plus-lg me-1"></i> Add User
     </a>
-}
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success border-0 shadow-sm mb-3" style="border-radius: 12px;" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger border-0 shadow-sm mb-3" style="border-radius: 12px;" role="alert">
-        <i class="bi bi-exclamation-circle-fill me-2"></i>@TempData["ErrorMessage"]
-    </div>
 }
 
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-4">
-        <div class="lux-card">
-            <div class="lux-card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-secondary small fw-medium">Total Accounts</div>
-                    <div class="fs-2 fw-bold tabular-nums mt-1">@totalUsers</div>
-                </div>
-                <span class="lux-avatar" style="width: 44px; height: 44px; font-size: 1.1rem;">
-                    <i class="bi bi-people"></i>
-                </span>
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Total Accounts</div>
+                <div class="fs-2 fw-bold tabular-num mt-1">@totalUsers</div>
             </div>
+            <span class="summary-badge"><i class="bi bi-people"></i></span>
         </div>
     </div>
-
     <div class="col-12 col-md-4">
-        <div class="lux-card">
-            <div class="lux-card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-secondary small fw-medium">Active Accounts</div>
-                    <div class="fs-2 fw-bold tabular-nums mt-1 text-success">@activeUsers</div>
-                </div>
-                <span class="lux-avatar" style="width: 44px; height: 44px; font-size: 1.1rem; background: rgba(25, 135, 84, 0.1); color: #198754; border-color: rgba(25, 135, 84, 0.2);">
-                    <i class="bi bi-person-check"></i>
-                </span>
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Active Accounts</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-success">@activeUsers</div>
             </div>
+            <span class="summary-badge summary-badge-ok"><i class="bi bi-check2-circle"></i></span>
         </div>
     </div>
-
     <div class="col-12 col-md-4">
-        <div class="lux-card">
-            <div class="lux-card-body d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="text-secondary small fw-medium">Inactive Accounts</div>
-                    <div class="fs-2 fw-bold tabular-nums mt-1 text-danger">@inactiveUsers</div>
-                </div>
-                <span class="lux-avatar" style="width: 44px; height: 44px; font-size: 1.1rem; background: rgba(220, 53, 69, 0.1); color: #dc3545; border-color: rgba(220, 53, 69, 0.2);">
-                    <i class="bi bi-person-x"></i>
-                </span>
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Inactive Accounts</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-danger">@inactiveUsers</div>
             </div>
+            <span class="summary-badge summary-badge-muted"><i class="bi bi-slash-circle"></i></span>
         </div>
     </div>
 </div>
 
-<!-- Users Directory Table -->
-<div class="lux-card">
-    <div class="lux-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <div>
-            <h2 class="h6 fw-semibold mb-0">Accounts Directory</h2>
-            <div class="text-secondary small">Member profiles, role assignments, and access control</div>
+<div class="data-card">
+    <div class="data-card-head d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 500px;">
+            <input type="text" id="userSearch" class="form-control" placeholder="Search by name, email or role..." />
+            <select id="userRoleFilter" class="form-select flex-shrink-0" style="width: 185px;">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Accountant">Accountant</option>
+                <option value="SalesEmployee">SalesEmployee</option>
+                <option value="WarehouseEmployee">WarehouseEmployee</option>
+            </select>
         </div>
-
-        <div style="min-width: 260px;">
-            <input type="text" id="userSearchInput" class="form-control" placeholder="Search name, email, or role..." />
-        </div>
+        <span class="text-secondary small tabular-num text-nowrap" id="userCountLabel">@totalUsers records</span>
     </div>
 
     <div class="table-responsive">
-        <table class="table align-middle mb-0" id="usersTable">
-            <thead style="background-color: #FAF9F6; border-bottom: 1px solid rgba(20, 22, 25, 0.08);">
-                <tr class="text-secondary" style="font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em;">
-                    <th class="py-3 ps-4">Member</th>
-                    <th class="py-3">Email</th>
-                    <th class="py-3 ps-0" style="padding-left: 0 !important;">Role</th>
-                    <th class="py-3">Status</th>
-                    <th class="py-3 pe-4 text-end">Actions</th>
+        <table class="table grid-table mb-0" id="usersTable">
+            <thead>
+                <tr>
+                    <th class="ps-4">User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th class="pe-4 text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Any())
                 {
                     <tr>
-                        <td colspan="5" class="text-center py-5">
-                            <div class="text-secondary mb-2"><i class="bi bi-inbox fs-2"></i></div>
-                            <div class="fw-semibold">No accounts found</div>
-                            <div class="text-secondary small mb-3">Create the first account to start managing permissions.</div>
-                            <a asp-controller="UserManagement" asp-action="Create" class="btn btn-lux-primary btn-sm">Add User</a>
-                        </td>
+                        <td colspan="5" class="text-center text-secondary py-5">No users found.</td>
                     </tr>
                 }
                 else
                 {
                     foreach (var user in Model)
                     {
-                        var initials = string.Join("", (user.FullName ?? "U")
+                        var initials = string.Join("",
+                        (user.FullName ?? "U")
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                         .Take(2)
                         .Select(s => char.ToUpperInvariant(s[0])));
 
-                        <tr class="user-row" style="border-bottom: 1px solid rgba(20, 22, 25, 0.06);">
-                            <td class="py-3 ps-4">
+                        <tr class="user-row" data-role="@user.Role">
+                            <td class="ps-4">
                                 <div class="d-flex align-items-center gap-3">
-                                    <span class="lux-avatar">@initials</span>
-                                    <span class="fw-semibold user-name">@user.FullName</span>
+                                    <span class="profile-chip">@initials</span>
+                                    <span class="fw-semibold">@user.FullName</span>
                                 </div>
                             </td>
-                            <td class="py-3 text-secondary user-email">@user.Email</td>
-                            <td class="py-3 user-role" style="padding-left: 0 !important; transform: translateX(-28px);">
-                                <span class="badge rounded-pill px-3 py-2 fw-medium"
-                                      style="background-color: #F5F3EE; color: #141619; border: 1px solid rgba(20, 22, 25, 0.12);">
-                                    @user.Role
-                                </span>
-                            </td>
-                            <td class="py-3">
+                            <td class="text-secondary">@user.Email</td>
+                            <td><span class="badge-role">@user.Role</span></td>
+                            <td>
                                 @if (user.IsActive)
                                 {
-                                    <span class="badge rounded-pill px-3 py-2 fw-medium"
-                                          style="background-color: rgba(25, 135, 84, 0.1); color: #157347;">
-                                        Active
-                                    </span>
+                                    <span class="state-pill state-active">Active</span>
                                 }
                                 else
                                 {
-                                    <span class="badge rounded-pill px-3 py-2 fw-medium"
-                                          style="background-color: rgba(220, 53, 69, 0.1); color: #b02a37;">
-                                        Inactive
-                                    </span>
+                                    <span class="state-pill state-inactive">Inactive</span>
                                 }
                             </td>
-                            <td class="py-3 pe-4 text-end">
+                            <td class="pe-4 text-end">
                                 <div class="d-inline-flex align-items-center gap-2">
                                     <a asp-controller="UserManagement"
                                        asp-action="Edit"
                                        asp-route-id="@user.Id"
-                                       class="lux-action-btn lux-action-edit"
-                                       title="Edit User"
-                                       aria-label="Edit User">
+                                       class="action-btn"
+                                       title="Edit">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
 
@@ -163,25 +122,22 @@
                                           asp-action="ToggleStatus"
                                           asp-route-id="@user.Id"
                                           method="post"
-                                          class="d-inline m-0 toggle-status-form"
-                                          data-user-name="@user.FullName"
-                                          data-is-active="@user.IsActive.ToString().ToLower()">
+                                          class="d-inline m-0 js-toggle-user"
+                                          data-active="@user.IsActive.ToString().ToLower()">
                                         @Html.AntiForgeryToken()
                                         @if (user.IsActive)
                                         {
                                             <button type="submit"
-                                                    class="lux-action-btn lux-action-deactivate"
-                                                    title="Deactivate Account"
-                                                    aria-label="Deactivate Account">
+                                                    class="action-btn action-btn-danger"
+                                                    title="Deactivate">
                                                 <i class="bi bi-person-slash"></i>
                                             </button>
                                         }
                                         else
                                         {
                                             <button type="submit"
-                                                    class="lux-action-btn lux-action-activate"
-                                                    title="Activate Account"
-                                                    aria-label="Activate Account">
+                                                    class="action-btn action-btn-success"
+                                                    title="Activate">
                                                 <i class="bi bi-person-check"></i>
                                             </button>
                                         }
@@ -199,100 +155,49 @@
 @section Scripts {
     <script>
         (function () {
-            const searchInput = document.getElementById('userSearchInput');
-            const rows = document.querySelectorAll('#usersTable tbody tr.user-row');
+            const search = document.getElementById('userSearch');
+            const roleFilter = document.getElementById('userRoleFilter');
+            const rows = Array.from(document.querySelectorAll('#usersTable tbody tr.user-row'));
+            const counter = document.getElementById('userCountLabel');
 
-            searchInput?.addEventListener('input', function () {
-                const q = this.value.trim().toLowerCase();
+            function applyFilter() {
+                const q = (search?.value || '').trim().toLowerCase();
+                const role = roleFilter?.value || '';
+                let visible = 0;
+
                 rows.forEach(function (row) {
-                    const name = row.querySelector('.user-name')?.textContent.toLowerCase() || '';
-                    const email = row.querySelector('.user-email')?.textContent.toLowerCase() || '';
-                    const role = row.querySelector('.user-role')?.textContent.toLowerCase() || '';
-                    row.style.display = (name.includes(q) || email.includes(q) || role.includes(q)) ? '' : 'none';
+                    const textMatch = !q || row.textContent.toLowerCase().includes(q);
+                    const roleMatch = !role || row.getAttribute('data-role') === role;
+                    const show = textMatch && roleMatch;
+                    row.style.display = show ? '' : 'none';
+                    if (show) visible++;
                 });
-            });
 
-            document.querySelectorAll('.toggle-status-form').forEach(function (form) {
+                if (counter) counter.textContent = `${visible} records`;
+            }
+
+            search?.addEventListener('input', applyFilter);
+            roleFilter?.addEventListener('change', applyFilter);
+
+            document.querySelectorAll('.js-toggle-user').forEach(function (form) {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
-                    const target = this;
-                    const name = target.getAttribute('data-user-name') || 'this account';
-                    const active = target.getAttribute('data-is-active') === 'true';
-
+                    const active = form.getAttribute('data-active') === 'true';
                     if (typeof Swal === 'undefined') {
-                        target.submit();
+                        form.submit();
                         return;
                     }
-
                     Swal.fire({
-                        title: active ? 'Deactivate Account?' : 'Activate Account?',
-                        text: active
-                            ? `Revoke access for ${name}?`
-                            : `Restore access for ${name}?`,
-                        icon: active ? 'warning' : 'question',
+                        title: active ? 'Deactivate user?' : 'Activate user?',
+                        icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: active ? '#b02a37' : '#111317',
-                        cancelButtonColor: '#8c929c',
-                        confirmButtonText: active ? 'Deactivate' : 'Activate'
+                        confirmButtonText: 'Confirm'
                     }).then(function (res) {
-                        if (res.isConfirmed) target.submit();
+                        if (res.isConfirmed) form.submit();
                     });
                 });
             });
         })();
     </script>
 }
-<style>
-    /* Luxury Icon Action Buttons */
-    .lux-action-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.95rem;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-
-    .lux-action-edit {
-        background-color: #FFFFFF;
-        color: var(--lux-ink);
-        border: 1px solid rgba(20, 22, 25, 0.14);
-    }
-
-        .lux-action-edit:hover {
-            background-color: var(--lux-obsidian);
-            border-color: var(--lux-obsidian);
-            color: #F3D59B;
-            transform: translateY(-1px);
-        }
-
-    .lux-action-deactivate {
-        background-color: rgba(176, 42, 55, 0.05);
-        color: #b02a37;
-        border: 1px solid rgba(176, 42, 55, 0.24);
-    }
-
-        .lux-action-deactivate:hover {
-            background-color: #b02a37;
-            border-color: #b02a37;
-            color: #FFFFFF;
-            transform: translateY(-1px);
-        }
-
-    .lux-action-activate {
-        background-color: rgba(21, 115, 71, 0.06);
-        color: #157347;
-        border: 1px solid rgba(21, 115, 71, 0.26);
-    }
-
-        .lux-action-activate:hover {
-            background-color: #157347;
-            border-color: #157347;
-            color: #FFFFFF;
-            transform: translateY(-1px);
-        }
-</style>

@@ -1303,6 +1303,12 @@ namespace Orvanta.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Symbol")
+                        .IsUnique();
+
                     b.ToTable("Units", (string)null);
                 });
 

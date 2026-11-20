@@ -1,0 +1,107 @@
+﻿@model Orvanta.ViewModels.Customers.CustomerDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Subtitle"] = "Customers";
+    Layout = "_AdminLayout";
+
+    var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
+}
+
+@section PageActions {
+    <a asp-controller="Customers" asp-action="Index" class="btn btn-subtle">Back</a>
+    @if (canManage)
+    {
+        <a asp-controller="Customers" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+    }
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="data-card">
+            <div class="data-card-head d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="h6 fw-semibold mb-0">Customer Profile</h2>
+                    <div class="text-secondary small">Contact information, address, and account status</div>
+                </div>
+                @if (Model.IsActive)
+                {
+                    <span class="state-pill state-active">Active</span>
+                }
+                else
+                {
+                    <span class="state-pill state-inactive">Inactive</span>
+                }
+            </div>
+
+            <div class="data-card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Full Name</div>
+                            <div class="fw-semibold">@Model.Name</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Phone Number</div>
+                            <div class="fw-medium tabular-num">
+                                @(string.IsNullOrWhiteSpace(Model.Phone) ? "—" : Model.Phone)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Email Address</div>
+                            <div class="fw-medium">
+                                @(string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Customer ID</div>
+                            <div class="fw-semibold tabular-num text-secondary">#@Model.Id</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-row-box">
+                            <div class="text-secondary small mb-1">Address</div>
+                            <div class="@(string.IsNullOrWhiteSpace(Model.Address) ? "text-secondary fst-italic small" : "")">
+                                @(string.IsNullOrWhiteSpace(Model.Address) ? "No address recorded." : Model.Address)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="info-row-box">
+                            <div class="text-secondary small mb-1">Notes</div>
+                            <div class="@(string.IsNullOrWhiteSpace(Model.Notes) ? "text-secondary fst-italic small" : "")">
+                                @(string.IsNullOrWhiteSpace(Model.Notes) ? "No additional notes." : Model.Notes)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Created At</div>
+                            <div class="small fw-medium tabular-num">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-row-box h-100">
+                            <div class="text-secondary small mb-1">Last Updated</div>
+                            <div class="small fw-medium tabular-num">
+                                @(Model.UpdatedAt.HasValue? Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm") : "—")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

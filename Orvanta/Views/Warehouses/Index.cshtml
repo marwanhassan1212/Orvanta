@@ -1,0 +1,292 @@
+﻿@using Orvanta.ViewModels.Warehouses
+@model dynamic
+@{
+    ViewData["Title"] = "Warehouses";
+    ViewData["Subtitle"] = "Facilities";
+    Layout = "_AdminLayout";
+
+    var filter = ViewBag.Filter as WarehouseFilterViewModel ?? new WarehouseFilterViewModel();
+
+    var rawItems = Model?.Items as System.Collections.IEnumerable ?? Model as System.Collections.IEnumerable;
+    var list = new List<WarehouseListViewModel>();
+    if (rawItems != null)
+    {
+        foreach (var row in rawItems)
+        {
+            if (row is WarehouseListViewModel vm)
+            {
+                list.Add(vm);
+            }
+        }
+    }
+
+    int totalCount = Model?.TotalCount != null ? (int)Model.TotalCount : list.Count;
+    int pageNumber = Model?.PageNumber != null ? (int)Model.PageNumber : (filter.PageNumber > 0 ? filter.PageNumber : 1);
+    int pageSize = Model?.PageSize != null ? (int)Model.PageSize : (filter.PageSize > 0 ? filter.PageSize : 10);
+    int totalPages = Model?.TotalPages != null ? (int)Model.TotalPages : (totalCount > 0 ? ((totalCount - 1) / pageSize) + 1 : 1);
+    if (totalPages < 1) { totalPages = 1; }
+
+    int activeCount = 0;
+    int inactiveCount = 0;
+    foreach (var row in list)
+    {
+        if (row.IsActive) { activeCount++; }
+        else { inactiveCount++; }
+    }
+
+    var sortBy = string.IsNullOrEmpty(filter.SortBy) ? "name" : filter.SortBy.ToLower();
+    var sortDir = string.IsNullOrEmpty(filter.SortDirection) ? "asc" : filter.SortDirection.ToLower();
+}
+
+@section PageActions {
+    <a asp-controller="Warehouses" asp-action="Create" class="btn btn-gold-cta">
+        <i class="bi bi-plus-lg me-1"></i> Add Warehouse
+    </a>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Total Warehouses</div>
+                <div class="fs-2 fw-bold tabular-num mt-1">@totalCount</div>
+            </div>
+            <span class="summary-badge"><i class="bi bi-buildings"></i></span>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Active (Current View)</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-success">@activeCount</div>
+            </div>
+            <span class="summary-badge summary-badge-ok"><i class="bi bi-check2-circle"></i></span>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="summary-box d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-secondary small fw-medium">Inactive (Current View)</div>
+                <div class="fs-2 fw-bold tabular-num mt-1 text-danger">@inactiveCount</div>
+            </div>
+            <span class="summary-badge summary-badge-muted"><i class="bi bi-slash-circle"></i></span>
+        </div>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-head">
+        <form asp-controller="Warehouses" asp-action="Index" method="get" id="warehouseFilterForm"
+              class="d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between gap-2">
+            <div class="d-flex flex-wrap flex-md-nowrap align-items-center gap-2 flex-grow-1">
+                <input type="text"
+                       name="SearchTerm"
+                       value="@filter.SearchTerm"
+                       class="form-control"
+                       style="min-width: 210px;"
+                       placeholder="Search name, code, or address..." />
+
+                <select name="IsActive" class="form-select flex-shrink-0" style="width: 155px;">
+                    <option value="">All Statuses</option>
+                    <option value="true" selected="@(filter.IsActive == true ? "selected" : null)">Active</option>
+                    <option value="false" selected="@(filter.IsActive == false ? "selected" : null)">Inactive</option>
+                </select>
+
+                <select name="SortBy" class="form-select flex-shrink-0" style="width: 155px;">
+                    <option value="name" selected="@(sortBy == "name" ? "selected" : null)">Sort: Name</option>
+                    <option value="code" selected="@(sortBy == "code" ? "selected" : null)">Sort: Code</option>
+                    <option value="createdat" selected="@(sortBy == "createdat" ? "selected" : null)">Sort: Created</option>
+                </select>
+
+                <select name="SortDirection" class="form-select flex-shrink-0" style="width: 120px;">
+                    <option value="asc" selected="@(sortDir == "asc" ? "selected" : null)">Asc</option>
+                    <option value="desc" selected="@(sortDir == "desc" ? "selected" : null)">Desc</option>
+                </select>
+
+                <input type="hidden" name="PageNumber" id="warehousePageNumber" value="1" />
+                <input type="hidden" name="PageSize" value="@pageSize" />
+
+                <button type="submit" class="btn btn-primary-dark flex-shrink-0">Filter</button>
+                <a asp-controller="Warehouses" asp-action="Index" class="btn btn-subtle flex-shrink-0">Reset</a>
+            </div>
+
+            <span class="text-secondary small tabular-num text-nowrap ms-lg-2">@totalCount records</span>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table grid-table mb-0" id="warehousesTable">
+            <thead>
+                <tr>
+                    <th class="ps-4">Code</th>
+                    <th>Warehouse</th>
+                    <th>Address</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (list.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-secondary py-5">No warehouses found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in list)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge-role tabular-num">@item.Code</span>
+                            </td>
+                            <td class="fw-semibold">@item.Name</td>
+                            <td class="text-secondary">
+                                @(string.IsNullOrWhiteSpace(item.Address) ? "—" : item.Address)
+                            </td>
+                            <td class="text-secondary small tabular-num">
+                                @item.CreatedAt.ToString("yyyy-MM-dd")
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="state-pill state-active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="state-pill state-inactive">Inactive</span>
+                                }
+                            </td>
+                            <td class="pe-4 text-end">
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <a asp-controller="Warehouses"
+                                       asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="action-btn"
+                                       title="Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    <a asp-controller="Warehouses"
+                                       asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="action-btn"
+                                       title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
+                                    <form asp-controller="Warehouses"
+                                          asp-action="ToggleStatus"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline m-0 js-toggle-warehouse"
+                                          data-active="@(item.IsActive ? "true" : "false")">
+                                        @Html.AntiForgeryToken()
+                                        @if (item.IsActive)
+                                        {
+                                            <button type="submit"
+                                                    class="action-btn action-btn-danger"
+                                                    title="Deactivate">
+                                                <i class="bi bi-slash-circle"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit"
+                                                    class="action-btn action-btn-success"
+                                                    title="Activate">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        }
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top"
+             style="border-color: var(--hairline); background-color: var(--bg-elevated);">
+            <div class="text-secondary small tabular-num">
+                Page @pageNumber of @totalPages
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <button type="button"
+                        class="btn btn-subtle btn-sm js-wh-page"
+                        data-page="@(pageNumber - 1)"
+                        @(pageNumber <= 1 ? "disabled" : null)>
+                    Previous
+                </button>
+
+                @for (var p = 1; p <= totalPages; p++)
+                {
+                    <button type="button"
+                            class="btn btn-sm js-wh-page @(p == pageNumber ? "btn-primary-dark" : "btn-subtle")"
+                            data-page="@p">
+                        @p
+                    </button>
+                }
+
+                <button type="button"
+                        class="btn btn-subtle btn-sm js-wh-page"
+                        data-page="@(pageNumber + 1)"
+                        @(pageNumber >= totalPages ? "disabled" : null)>
+                    Next
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var filterForm = document.getElementById('warehouseFilterForm');
+            var pageInput = document.getElementById('warehousePageNumber');
+
+            var pageBtns = document.querySelectorAll('.js-wh-page');
+            for (var i = 0; i < pageBtns.length; i++) {
+                pageBtns[i].addEventListener('click', function () {
+                    var targetPage = this.getAttribute('data-page');
+                    if (targetPage && filterForm && pageInput) {
+                        pageInput.value = targetPage;
+                        filterForm.submit();
+                    }
+                });
+            }
+
+            var toggleForms = document.querySelectorAll('.js-toggle-warehouse');
+            for (var j = 0; j < toggleForms.length; j++) {
+                toggleForms[j].addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var formEl = this;
+                    var active = formEl.getAttribute('data-active') === 'true';
+                    if (typeof Swal === 'undefined') {
+                        formEl.submit();
+                        return;
+                    }
+                    Swal.fire({
+                        title: active ? 'Deactivate warehouse?' : 'Activate warehouse?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: active ? '#b02a37' : '#111317',
+                        confirmButtonText: 'Confirm'
+                    }).then(function (res) {
+                        if (res.isConfirmed) {
+                            formEl.submit();
+                        }
+                    });
+                });
+            }
+        })();
+    </script>
+}
