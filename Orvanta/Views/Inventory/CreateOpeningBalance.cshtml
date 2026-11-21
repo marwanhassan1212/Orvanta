@@ -1,0 +1,447 @@
+﻿@{
+    ViewData["Title"] = "Opening Balance";
+    ViewData["Subtitle"] = "Inventory";
+    Layout = "_AdminLayout";
+
+    var productIdVal = ViewData.ModelState.TryGetValue("productId", out var pEntry) && pEntry.AttemptedValue != null
+        ? pEntry.AttemptedValue
+        : string.Empty;
+
+    var warehouseIdVal = ViewData.ModelState.TryGetValue("warehouseId", out var wEntry) && wEntry.AttemptedValue != null
+        ? wEntry.AttemptedValue
+        : string.Empty;
+
+    var quantityVal = ViewData.ModelState.TryGetValue("quantity", out var qEntry) && qEntry.AttemptedValue != null
+        ? qEntry.AttemptedValue
+        : string.Empty;
+
+    var unitCostVal = ViewData.ModelState.TryGetValue("unitCost", out var cEntry) && cEntry.AttemptedValue != null
+        ? cEntry.AttemptedValue
+        : string.Empty;
+
+    var hasGeneralErrors = !ViewData.ModelState.IsValid &&
+                           ViewData.ModelState.TryGetValue(string.Empty, out var rootEntry) &&
+                           rootEntry.Errors.Count > 0;
+}
+
+<style>
+    .orvanta-search-box {
+        position: relative;
+    }
+
+    .orvanta-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        max-height: 230px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1px solid rgba(16, 19, 24, 0.14);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px rgba(16, 19, 24, 0.12);
+        margin-top: 4px;
+    }
+
+    .orvanta-suggestion-item {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(16, 19, 24, 0.06);
+        color: #101318;
+        font-size: 0.9rem;
+    }
+
+        .orvanta-suggestion-item:last-child {
+            border-bottom: 0;
+        }
+
+        .orvanta-suggestion-item:hover,
+        .orvanta-suggestion-item.active {
+            background-color: rgba(179, 135, 59, 0.12);
+            color: #101318;
+        }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="card">
+            <div class="card-header bg-transparent py-3">
+                <h2 class="h6 fw-bold mb-0">Create Opening Balance</h2>
+                <div class="text-secondary small">Record initial stock quantity and unit cost for a product in a warehouse</div>
+            </div>
+
+            <div class="card-body">
+                @if (hasGeneralErrors)
+                {
+                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
+                }
+
+                <form asp-controller="Inventory" asp-action="CreateOpeningBalance" method="post" id="openingBalanceForm" autocomplete="off">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="productSearchInput" class="form-label fw-semibold">Product</label>
+                            <div class="orvanta-search-box">
+                                <input id="productSearchInput"
+                                       type="text"
+                                       class="form-control"
+                                       placeholder="Type product name to search..."
+                                       autocomplete="off" />
+                                <input id="productId"
+                                       name="productId"
+                                       type="hidden"
+                                       value="@productIdVal" />
+                                <div id="productSuggestions" class="orvanta-suggestions d-none"></div>
+                            </div>
+                            <div id="productSelectionHint" class="form-text small">
+                                @(string.IsNullOrWhiteSpace(productIdVal) ? "Start typing product name to search." : $"Selected Product ID: #{productIdVal}")
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label for="warehouseSearchInput" class="form-label fw-semibold">Warehouse</label>
+                            <div class="orvanta-search-box">
+                                <input id="warehouseSearchInput"
+                                       type="text"
+                                       class="form-control"
+                                       placeholder="Type warehouse name to search..."
+                                       autocomplete="off" />
+                                <input id="warehouseId"
+                                       name="warehouseId"
+                                       type="hidden"
+                                       value="@warehouseIdVal" />
+                                <div id="warehouseSuggestions" class="orvanta-suggestions d-none"></div>
+                            </div>
+                            <div id="warehouseSelectionHint" class="form-text small">
+                                @(string.IsNullOrWhiteSpace(warehouseIdVal) ? "Start typing warehouse name to search." : $"Selected Warehouse ID: #{warehouseIdVal}")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="selectionErrorAlert" class="alert alert-danger py-2 px-3 small mb-3 d-none" role="alert">
+                        Please select a valid <strong>Product</strong> and <strong>Warehouse</strong> from the search suggestions.
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <label for="quantity" class="form-label fw-semibold">Quantity</label>
+                            <input id="quantity"
+                                   name="quantity"
+                                   type="number"
+                                   step="0.01"
+                                   min="0.01"
+                                   value="@quantityVal"
+                                   class="form-control"
+                                   placeholder="0.00"
+                                   required />
+                            @if (ViewData.ModelState.TryGetValue("quantity", out var qState) && qState.Errors.Count > 0)
+                            {
+                                <span class="text-danger small d-block mt-1">@qState.Errors[0].ErrorMessage</span>
+                            }
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label for="unitCost" class="form-label fw-semibold">Unit Cost</label>
+                            <input id="unitCost"
+                                   name="unitCost"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   value="@unitCostVal"
+                                   class="form-control"
+                                   placeholder="0.00"
+                                   required />
+                            @if (ViewData.ModelState.TryGetValue("unitCost", out var cState) && cState.Errors.Count > 0)
+                            {
+                                <span class="text-danger small d-block mt-1">@cState.Errors[0].ErrorMessage</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="Inventory" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Opening Balance</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            function extractPrice(item) {
+                if (!item || typeof item !== 'object') return null;
+
+                var keys = [
+                    'purchasePrice', 'PurchasePrice',
+                    'costPrice', 'CostPrice',
+                    'unitCost', 'UnitCost',
+                    'price', 'Price'
+                ];
+
+                for (var i = 0; i < keys.length; i++) {
+                    var k = keys[i];
+                    if (Object.prototype.hasOwnProperty.call(item, k) && item[k] !== undefined && item[k] !== null && item[k] !== '') {
+                        var cleaned = String(item[k]).replace(/,/g, '').trim();
+                        var num = parseFloat(cleaned);
+                        if (!isNaN(num)) {
+                            return num;
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            function fillUnitCost(item) {
+                var unitCostEl = document.getElementById('unitCost');
+                if (!unitCostEl || !item) return;
+
+                var priceNum = extractPrice(item);
+                if (priceNum !== null) {
+                    var formatted = priceNum.toFixed(2);
+                    unitCostEl.value = formatted;
+                    unitCostEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    unitCostEl.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+
+            function attachInstantSearch(options) {
+                var inputEl = document.getElementById(options.inputId);
+                var hiddenIdEl = document.getElementById(options.hiddenId);
+                var listEl = document.getElementById(options.listId);
+                var hintEl = document.getElementById(options.hintId);
+                var timer = null;
+                var activeIndex = -1;
+                var currentItems = [];
+
+                if (!inputEl || !hiddenIdEl || !listEl) return;
+
+                function hideList() {
+                    activeIndex = -1;
+                    currentItems = [];
+                    listEl.classList.add('d-none');
+                    listEl.innerHTML = '';
+                }
+
+                function selectItem(item) {
+                    if (!item) return;
+
+                    var itemId = item.id ?? item.Id;
+                    var itemName = item.name ?? item.Name ?? '';
+
+                    inputEl.value = itemName;
+                    hiddenIdEl.value = itemId;
+
+                    if (typeof options.onSelect === 'function') {
+                        options.onSelect(item);
+                    }
+
+                    if (hintEl) {
+                        hintEl.textContent = 'Selected: ' + itemName + ' (#' + itemId + ')';
+                    }
+
+                    hideList();
+                }
+
+                function highlightActive() {
+                    var rows = listEl.querySelectorAll('.orvanta-suggestion-item');
+                    for (var i = 0; i < rows.length; i++) {
+                        if (i === activeIndex) {
+                            rows[i].classList.add('active');
+                        } else {
+                            rows[i].classList.remove('active');
+                        }
+                    }
+                }
+
+                function renderItems(items) {
+                    listEl.innerHTML = '';
+                    activeIndex = -1;
+                    currentItems = Array.isArray(items) ? items : [];
+
+                    if (currentItems.length === 0) {
+                        var emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'orvanta-suggestion-item text-secondary';
+                        emptyDiv.textContent = 'No matching results';
+                        listEl.appendChild(emptyDiv);
+                        listEl.classList.remove('d-none');
+                        return;
+                    }
+
+                    currentItems.forEach(function (item, idx) {
+                        var itemId = item.id ?? item.Id;
+                        var itemName = item.name ?? item.Name ?? '';
+                        var priceNum = extractPrice(item);
+
+                        var row = document.createElement('div');
+                        row.className = 'orvanta-suggestion-item';
+
+                        var titleSpan = document.createElement('span');
+                        titleSpan.className = 'fw-semibold';
+                        titleSpan.textContent = itemName;
+
+                        var rightWrap = document.createElement('span');
+                        rightWrap.className = 'd-inline-flex align-items-center gap-2';
+
+                        if (priceNum !== null) {
+                            var priceSpan = document.createElement('span');
+                            priceSpan.className = 'text-secondary small';
+                            priceSpan.textContent = priceNum.toFixed(2);
+                            rightWrap.appendChild(priceSpan);
+                        }
+
+                        var codeSpan = document.createElement('span');
+                        codeSpan.className = 'badge text-bg-light border text-dark';
+                        codeSpan.textContent = '#' + itemId;
+                        rightWrap.appendChild(codeSpan);
+
+                        row.appendChild(titleSpan);
+                        row.appendChild(rightWrap);
+
+                        row.addEventListener('mousedown', function (e) {
+                            e.preventDefault();
+                            selectItem(item);
+                        });
+
+                        row.addEventListener('mouseenter', function () {
+                            activeIndex = idx;
+                            highlightActive();
+                        });
+
+                        listEl.appendChild(row);
+                    });
+
+                    listEl.classList.remove('d-none');
+                }
+
+                function triggerSearch() {
+                    var val = inputEl.value.trim();
+                    hiddenIdEl.value = '';
+                    clearTimeout(timer);
+
+                    if (val.length === 0) {
+                        hideList();
+                        if (hintEl) {
+                            hintEl.textContent = options.emptyHint || 'Start typing to search.';
+                        }
+                        return;
+                    }
+
+                    if (hintEl) {
+                        hintEl.textContent = 'Searching for "' + val + '"...';
+                    }
+
+                    timer = setTimeout(function () {
+                        var url = options.endpoint + '?term=' + encodeURIComponent(val);
+                        fetch(url, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                            .then(function (res) {
+                                if (!res.ok) return [];
+                                return res.json();
+                            })
+                            .then(function (data) {
+                                if (inputEl.value.trim().length === 0) {
+                                    hideList();
+                                    return;
+                                }
+                                renderItems(data);
+                            })
+                            .catch(function () {
+                                renderItems([]);
+                            });
+                    }, 60);
+                }
+
+                inputEl.addEventListener('input', triggerSearch);
+                inputEl.addEventListener('keyup', function (e) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (currentItems.length > 0) {
+                            activeIndex = (activeIndex + 1) % currentItems.length;
+                            highlightActive();
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (currentItems.length > 0) {
+                            activeIndex = (activeIndex - 1 + currentItems.length) % currentItems.length;
+                            highlightActive();
+                        }
+                        return;
+                    }
+                    if (e.key === 'Enter' && activeIndex >= 0 && currentItems[activeIndex]) {
+                        e.preventDefault();
+                        selectItem(currentItems[activeIndex]);
+                        return;
+                    }
+                    if (e.key === 'Escape') {
+                        hideList();
+                        return;
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!inputEl.contains(e.target) && !listEl.contains(e.target)) {
+                        hideList();
+                    }
+                });
+            }
+
+            attachInstantSearch({
+                inputId: 'productSearchInput',
+                hiddenId: 'productId',
+                listId: 'productSuggestions',
+                hintId: 'productSelectionHint',
+                emptyHint: 'Start typing product name to search.',
+                endpoint: '@Url.Action("SearchProducts", "Inventory")',
+                onSelect: function (item) {
+                    fillUnitCost(item);
+                }
+            });
+
+            attachInstantSearch({
+                inputId: 'warehouseSearchInput',
+                hiddenId: 'warehouseId',
+                listId: 'warehouseSuggestions',
+                hintId: 'warehouseSelectionHint',
+                emptyHint: 'Start typing warehouse name to search.',
+                endpoint: '@Url.Action("SearchWarehouses", "Inventory")'
+            });
+
+            var formEl = document.getElementById('openingBalanceForm');
+            var prodHidden = document.getElementById('productId');
+            var whHidden = document.getElementById('warehouseId');
+            var errorAlert = document.getElementById('selectionErrorAlert');
+
+            if (formEl && prodHidden && whHidden) {
+                formEl.addEventListener('submit', function (e) {
+                    var pId = parseInt(prodHidden.value, 10);
+                    var wId = parseInt(whHidden.value, 10);
+                    if (isNaN(pId) || pId <= 0 || isNaN(wId) || wId <= 0) {
+                        e.preventDefault();
+                        if (errorAlert) {
+                            errorAlert.classList.remove('d-none');
+                        }
+                    } else if (errorAlert) {
+                        errorAlert.classList.add('d-none');
+                    }
+                });
+            }
+        })();
+    </script>
+}

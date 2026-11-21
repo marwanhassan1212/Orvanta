@@ -7,14 +7,19 @@ using Orvanta.Models;
 using Orvanta.Repositories;
 using Orvanta.Repositories.Category;
 using Orvanta.Repositories.Customer;
+using Orvanta.Repositories.Interfaces;
+using Orvanta.Repositories.InventoryStock;
+using Orvanta.Repositories.InventoryTransaction;
 using Orvanta.Repositories.Supplier;
 using Orvanta.Repositories.Unit;
 using Orvanta.Repositories.Warehouse;
 using Orvanta.Service.Category;
 using Orvanta.Service.Customer;
+using Orvanta.Service.InventoryStock;
 using Orvanta.Service.Supplier;
 using Orvanta.Service.Unit;
 using Orvanta.Services;
+using Orvanta.Services.Inventory;
 
 namespace Orvanta
 {
@@ -107,6 +112,8 @@ namespace Orvanta
             builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
             builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+            builder.Services.AddScoped<IInventoryStockRepository, InventoryStockRepository>();
+            builder.Services.AddScoped<IInventoryTransactionRepository, InventoryTransactionRepository>();
 
             // Services
             builder.Services.AddScoped<IUnitService, UnitService>();
@@ -115,6 +122,7 @@ namespace Orvanta
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<ISupplierService, SupplierService>();
             builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+            builder.Services.AddScoped<IInventoryService, InventoryService>();
 
             // UnitOfOWork
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -1,0 +1,91 @@
+﻿@model Orvanta.ViewModels.Inventory.InventoryStockDetailsViewModel
+@{
+    ViewData["Title"] = $"{Model.ProductName} - {Model.WarehouseName}";
+    ViewData["Subtitle"] = "Inventory Stock";
+    Layout = "_AdminLayout";
+}
+
+@section PageActions {
+    <a asp-controller="Inventory" asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    <a asp-controller="Inventory"
+       asp-action="Transactions"
+       asp-route-ProductId="@Model.ProductId"
+       asp-route-WarehouseId="@Model.WarehouseId"
+       class="btn btn-dark">
+        <i class="bi bi-clock-history me-1"></i> Transactions
+    </a>
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="card">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
+                <div>
+                    <h2 class="h6 fw-bold mb-0">Stock Balance Breakdown</h2>
+                    <div class="text-secondary small">Available quantity, weighted average cost, and valuation</div>
+                </div>
+                @if (Model.Quantity > 0m)
+                {
+                    <span class="badge text-bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">In Stock</span>
+                }
+                else
+                {
+                    <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">Out of Stock</span>
+                }
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Product</div>
+                            <div class="fw-semibold">@Model.ProductName</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">SKU</div>
+                            <div><code class="text-dark fw-semibold">@Model.SKU</code></div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Warehouse</div>
+                            <div class="fw-semibold">@Model.WarehouseName</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Available Quantity</div>
+                            <div class="fs-5 fw-bold">@Model.Quantity.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Average Cost</div>
+                            <div class="fs-5 fw-bold">@Model.AverageCost.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Total Value</div>
+                            <div class="fs-5 fw-bold orvanta-gold-text">@Model.TotalValue.ToString("N2")</div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="p-3 rounded-3 border bg-body-tertiary">
+                            <div class="text-secondary small mb-1">Last Updated</div>
+                            <div class="small fw-medium">@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,245 @@
+﻿@using Orvanta.Models
+@using Orvanta.ViewModels.Inventory
+@model dynamic
+@{
+    ViewData["Title"] = "Inventory Transactions";
+    ViewData["Subtitle"] = "Inventory";
+    Layout = "_AdminLayout";
+
+    var defaultFilter = new InventoryTransactionFilterViewModel();
+
+    var prodIdStr = Context.Request.Query["ProductId"].ToString();
+    int? productIdFilter = int.TryParse(prodIdStr, out var pId) && pId > 0 ? pId : null;
+
+    var whIdStr = Context.Request.Query["WarehouseId"].ToString();
+    int? warehouseIdFilter = int.TryParse(whIdStr, out var wId) && wId > 0 ? wId : null;
+
+    var txTypeStr = Context.Request.Query["TransactionType"].ToString();
+    InventoryTransactionType? txTypeFilter = Enum.TryParse<InventoryTransactionType>(txTypeStr, true, out var parsedTx)
+        ? parsedTx
+        : null;
+
+    var fromDateStr = Context.Request.Query["FromDate"].ToString();
+    var toDateStr = Context.Request.Query["ToDate"].ToString();
+
+    var sortDirRaw = Context.Request.Query["SortDirection"].ToString();
+    var sortDir = string.IsNullOrWhiteSpace(sortDirRaw) ? defaultFilter.SortDirection.ToLower() : sortDirRaw.ToLower();
+
+    int queryPage = int.TryParse(Context.Request.Query["PageNumber"], out var qPage) && qPage > 0 ? qPage : defaultFilter.PageNumber;
+    int queryPageSize = int.TryParse(Context.Request.Query["PageSize"], out var qSize) && qSize > 0 ? qSize : defaultFilter.PageSize;
+
+    var rawItems = Model?.Items as System.Collections.IEnumerable ?? Model as System.Collections.IEnumerable;
+    var list = new List<InventoryTransactionListViewModel>();
+    if (rawItems != null)
+    {
+        foreach (var row in rawItems)
+        {
+            if (row is InventoryTransactionListViewModel vm)
+            {
+                list.Add(vm);
+            }
+        }
+    }
+
+    int totalCount = Model?.TotalCount != null ? (int)Model.TotalCount : list.Count;
+    int pageNumber = Model?.PageNumber != null ? (int)Model.PageNumber : queryPage;
+    int pageSize = Model?.PageSize != null ? (int)Model.PageSize : queryPageSize;
+    int totalPages = Model?.TotalPages != null ? (int)Model.TotalPages : (totalCount > 0 ? ((totalCount - 1) / pageSize) + 1 : 1);
+    if (totalPages < 1) { totalPages = 1; }
+
+    decimal totalCostInView = 0m;
+    foreach (var row in list)
+    {
+        totalCostInView += row.TotalCost;
+    }
+}
+
+@section PageActions {
+    <a asp-controller="Inventory" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-boxes me-1"></i> Stock Balances
+    </a>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-semibold">Total Movements</div>
+                    <div class="fs-2 fw-bold mt-1">@totalCount</div>
+                </div>
+                <span class="rounded-3 bg-light p-3 text-dark fs-4">
+                    <i class="bi bi-arrow-left-right"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-semibold">Total Cost (Current View)</div>
+                    <div class="fs-2 fw-bold mt-1 orvanta-gold-text">@totalCostInView.ToString("N2")</div>
+                </div>
+                <span class="rounded-3 bg-warning-subtle p-3 text-warning fs-4">
+                    <i class="bi bi-calculator"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-transparent py-3">
+        <form asp-controller="Inventory" asp-action="Transactions" method="get" id="txFilterForm"
+              class="d-flex flex-wrap flex-xl-nowrap align-items-center justify-content-between gap-2">
+            <div class="d-flex flex-wrap flex-xl-nowrap align-items-center gap-2 flex-grow-1">
+                @if (productIdFilter.HasValue)
+                {
+                    <input type="hidden" name="ProductId" value="@productIdFilter.Value" />
+                }
+                @if (warehouseIdFilter.HasValue)
+                {
+                    <input type="hidden" name="WarehouseId" value="@warehouseIdFilter.Value" />
+                }
+
+                <select name="TransactionType" class="form-select form-select-sm flex-shrink-0" style="width: 175px;">
+                    <option value="">All Types</option>
+                    @foreach (var txEnum in Enum.GetValues<InventoryTransactionType>())
+                    {
+                        <option value="@txEnum" selected="@(txTypeFilter == txEnum ? "selected" : null)">@txEnum</option>
+                    }
+                </select>
+
+                <input type="date"
+                       name="FromDate"
+                       value="@fromDateStr"
+                       class="form-control form-control-sm flex-shrink-0"
+                       style="width: 155px;"
+                       title="From Date" />
+
+                <input type="date"
+                       name="ToDate"
+                       value="@toDateStr"
+                       class="form-control form-control-sm flex-shrink-0"
+                       style="width: 155px;"
+                       title="To Date" />
+
+                <select name="SortDirection" class="form-select form-select-sm flex-shrink-0" style="width: 115px;">
+                    <option value="desc" selected="@(sortDir == "desc" ? "selected" : null)">Newest</option>
+                    <option value="asc" selected="@(sortDir == "asc" ? "selected" : null)">Oldest</option>
+                </select>
+
+                <input type="hidden" name="PageNumber" id="txPageNumber" value="1" />
+                <input type="hidden" name="PageSize" value="@pageSize" />
+
+                <button type="submit" class="btn btn-dark btn-sm flex-shrink-0 px-3">Filter</button>
+                <a asp-controller="Inventory" asp-action="Transactions" class="btn btn-outline-secondary btn-sm flex-shrink-0">Reset</a>
+            </div>
+
+            <span class="text-secondary small text-nowrap ms-xl-2">@totalCount records</span>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="inventoryTransactionsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Type</th>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Unit Cost</th>
+                        <th class="pe-4 text-end">Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (list.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-secondary py-5">No inventory transactions found.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var tx in list)
+                        {
+                            <tr>
+                                <td class="ps-4 text-secondary small">@tx.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <span class="badge text-bg-light border text-dark px-2 py-1">@tx.TransactionType</span>
+                                </td>
+                                <td class="fw-semibold">@tx.ProductName</td>
+                                <td>
+                                    <code class="text-dark bg-body-tertiary px-2 py-1 rounded border">@tx.SKU</code>
+                                </td>
+                                <td class="text-secondary">@tx.WarehouseName</td>
+                                <td class="fw-semibold">@tx.Quantity.ToString("N2")</td>
+                                <td class="text-secondary">@tx.UnitCost.ToString("N2")</td>
+                                <td class="pe-4 text-end fw-semibold">@tx.TotalCost.ToString("N2")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="card-footer bg-transparent d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="text-secondary small">
+                Page @pageNumber of @totalPages
+            </div>
+
+            <div class="d-flex align-items-center gap-1">
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm js-tx-page"
+                        data-page="@(pageNumber - 1)"
+                        @(pageNumber <= 1 ? "disabled" : null)>
+                    Previous
+                </button>
+
+                @for (var p = 1; p <= totalPages; p++)
+                {
+                    <button type="button"
+                            class="btn btn-sm js-tx-page @(p == pageNumber ? "btn-dark" : "btn-outline-secondary")"
+                            data-page="@p">
+                        @p
+                    </button>
+                }
+
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm js-tx-page"
+                        data-page="@(pageNumber + 1)"
+                        @(pageNumber >= totalPages ? "disabled" : null)>
+                    Next
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var filterForm = document.getElementById('txFilterForm');
+            var pageInput = document.getElementById('txPageNumber');
+
+            var pageBtns = document.querySelectorAll('.js-tx-page');
+            for (var i = 0; i < pageBtns.length; i++) {
+                pageBtns[i].addEventListener('click', function () {
+                    var targetPage = this.getAttribute('data-page');
+                    if (targetPage && filterForm && pageInput) {
+                        pageInput.value = targetPage;
+                        filterForm.submit();
+                    }
+                });
+            }
+        })();
+    </script>
+}
