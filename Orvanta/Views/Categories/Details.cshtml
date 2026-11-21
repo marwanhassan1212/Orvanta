@@ -8,49 +8,63 @@
 }
 
 @section PageActions {
-    <a asp-controller="Categories" asp-action="Index" class="btn btn-subtle">Back</a>
+    <a asp-controller="Categories" asp-action="Index" class="btn btn-outline-secondary">Back</a>
     @if (canManage)
     {
-        <a asp-controller="Categories" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+        <a asp-controller="Categories" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Edit</a>
     }
 }
 
 <div class="row justify-content-center">
-    <div class="col-12 col-md-10 col-lg-8 col-xl-7">
-        <div class="data-card">
-            <div class="data-card-head d-flex align-items-center justify-content-between">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="card">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
                 <div>
-                    <h2 class="h6 fw-semibold mb-0">Category Details</h2>
-                    <div class="text-secondary small">Catalog classification metadata and product count</div>
+                    <h2 class="h6 fw-bold mb-0">Category Details</h2>
+                    <div class="text-secondary small">Classification info, linked products count, and status</div>
                 </div>
                 @if (Model.IsActive)
                 {
-                    <span class="state-pill state-active">Active</span>
+                    <span class="badge text-bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">Active</span>
                 }
                 else
                 {
-                    <span class="state-pill state-inactive">Inactive</span>
+                    <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">Inactive</span>
                 }
             </div>
 
-            <div class="data-card-body">
-                <div class="row g-3 mb-3">
+            <div class="card-body">
+                <div class="row g-3">
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Category Name</div>
                             <div class="fw-semibold">@Model.Name</div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
-                            <div class="text-secondary small mb-1">Linked Products</div>
-                            <div class="fs-5 fw-bold tabular-num">@Model.ProductsCount</div>
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Products Count</div>
+                            <div class="fw-bold">@Model.ProductsCount</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Category ID</div>
+                            <div class="fw-semibold text-secondary">#@Model.Id</div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Status</div>
+                            <div class="fw-medium">@(Model.IsActive ? "Active" : "Inactive")</div>
                         </div>
                     </div>
 
                     <div class="col-12">
-                        <div class="info-row-box">
+                        <div class="p-3 rounded-3 border bg-body-tertiary">
                             <div class="text-secondary small mb-1">Description</div>
                             <div class="@(string.IsNullOrWhiteSpace(Model.Description) ? "text-secondary fst-italic small" : "")">
                                 @(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)
@@ -59,16 +73,16 @@
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Created At</div>
-                            <div class="small fw-medium tabular-num">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                            <div class="small fw-medium">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Last Updated</div>
-                            <div class="small fw-medium tabular-num">
+                            <div class="small fw-medium">
                                 @(Model.UpdatedAt.HasValue? Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm") : "—")
                             </div>
                         </div>

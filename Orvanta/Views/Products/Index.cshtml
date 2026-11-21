@@ -1,81 +1,64 @@
-﻿@using System.Collections
-@using System.Reflection
-@using Orvanta.ViewModels.Products
-@model object
+﻿@using Orvanta.ViewModels.Products
+@model dynamic
 @{
     ViewData["Title"] = "Products";
-    ViewData["Subtitle"] = "Catalog";
+    ViewData["Subtitle"] = "Catalog & Partners";
     Layout = "_AdminLayout";
 
     var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
+    var defaultFilter = new ProductFilterViewModel();
 
-    var items = new List<ProductListViewModel>();
-    int totalCount = 0;
-    int pageNumber = 1;
-    int pageSize = 10;
-    int totalPages = 1;
+    var searchTerm = Context.Request.Query["SearchTerm"].ToString();
+    var catIdStr = Context.Request.Query["CategoryId"].ToString();
+    int? categoryIdFilter = int.TryParse(catIdStr, out var parsedCatId) ? parsedCatId : null;
 
-    if (Model != null)
+    var unitIdStr = Context.Request.Query["UnitId"].ToString();
+    int? unitIdFilter = int.TryParse(unitIdStr, out var parsedUnitId) ? parsedUnitId : null;
+
+    var isActiveQuery = Context.Request.Query["IsActive"].ToString();
+    bool? isActiveFilter = bool.TryParse(isActiveQuery, out var parsedActive) ? parsedActive : null;
+
+    var sortByRaw = Context.Request.Query["SortBy"].ToString();
+    var sortBy = string.IsNullOrWhiteSpace(sortByRaw) ? defaultFilter.SortBy.ToLower() : sortByRaw.ToLower();
+
+    var sortDirRaw = Context.Request.Query["SortDirection"].ToString();
+    var sortDir = string.IsNullOrWhiteSpace(sortDirRaw) ? defaultFilter.SortDirection.ToLower() : sortDirRaw.ToLower();
+
+    int queryPage = int.TryParse(Context.Request.Query["PageNumber"], out var qPage) && qPage > 0 ? qPage : defaultFilter.PageNumber;
+    int queryPageSize = int.TryParse(Context.Request.Query["PageSize"], out var qSize) && qSize > 0 ? qSize : defaultFilter.PageSize;
+
+    var rawItems = Model?.Items as System.Collections.IEnumerable ?? Model as System.Collections.IEnumerable;
+    var list = new List<ProductListViewModel>();
+    if (rawItems != null)
     {
-        var type = Model.GetType();
-        var itemsProp = type.GetProperty("Items") ?? type.GetProperty("Data") ?? type.GetProperty("Results");
-
-        if (itemsProp?.GetValue(Model) is IEnumerable rawItems)
+        foreach (var row in rawItems)
         {
-            foreach (var entry in rawItems)
+            if (row is ProductListViewModel vm)
             {
-                if (entry is ProductListViewModel vm)
-                    items.Add(vm);
+                list.Add(vm);
             }
-        }
-        else if (Model is IEnumerable directItems)
-        {
-            foreach (var entry in directItems)
-            {
-                if (entry is ProductListViewModel vm)
-                    items.Add(vm);
-            }
-        }
-
-        object? GetPropVal(string name) => type.GetProperty(name)?.GetValue(Model);
-
-        totalCount = GetPropVal("TotalCount") is int tc ? tc
-                   : GetPropVal("TotalItems") is int ti ? ti
-                   : items.Count;
-
-        pageNumber = GetPropVal("PageNumber") is int pn && pn > 0 ? pn
-                   : GetPropVal("CurrentPage") is int cp && cp > 0 ? cp : 1;
-
-        pageSize = GetPropVal("PageSize") is int ps && ps > 0 ? ps : 10;
-
-        if (GetPropVal("TotalPages") is int tp && tp > 0)
-        {
-            totalPages = tp;
-        }
-        else
-        {
-            totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
         }
     }
 
-    var searchTerm = Context.Request.Query["SearchTerm"].ToString();
-    var categoryId = Context.Request.Query["CategoryId"].ToString();
-    var unitId = Context.Request.Query["UnitId"].ToString();
-    var isActiveQuery = Context.Request.Query["IsActive"].ToString();
-    var sortBy = string.IsNullOrWhiteSpace(Context.Request.Query["SortBy"]) ? "name" : Context.Request.Query["SortBy"].ToString();
-    var sortDirection = string.IsNullOrWhiteSpace(Context.Request.Query["SortDirection"]) ? "asc" : Context.Request.Query["SortDirection"].ToString();
+    int totalCount = Model?.TotalCount != null ? (int)Model.TotalCount : list.Count;
+    int pageNumber = Model?.PageNumber != null ? (int)Model.PageNumber : queryPage;
+    int pageSize = Model?.PageSize != null ? (int)Model.PageSize : queryPageSize;
+    int totalPages = Model?.TotalPages != null ? (int)Model.TotalPages : (totalCount > 0 ? ((totalCount - 1) / pageSize) + 1 : 1);
+    if (totalPages < 1) { totalPages = 1; }
 
-    var categoriesSelect = ViewBag.Categories as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    var unitsSelect = ViewBag.Units as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-
-    var activeInPage = items.Count(p => p.IsActive);
-    var inactiveInPage = items.Count - activeInPage;
+    int activeCount = 0;
+    decimal viewSalesTotal = 0m;
+    foreach (var row in list)
+    {
+        if (row.IsActive) { activeCount++; }
+        viewSalesTotal += row.SellingPrice;
+    }
 }
 
 @if (canManage)
 {
     @section PageActions {
-        <a asp-controller="Products" asp-action="Create" class="btn btn-gold-cta">
+        <a asp-controller="Products" asp-action="Create" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i> Add Product
         </a>
     }
@@ -83,205 +66,209 @@
 
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-4">
-        <div class="summary-box d-flex align-items-center justify-content-between">
-            <div>
-                <div class="text-secondary small fw-medium">Total Products</div>
-                <div class="fs-2 fw-bold tabular-num mt-1">@totalCount</div>
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-semibold">Total Products</div>
+                    <div class="fs-2 fw-bold mt-1">@totalCount</div>
+                </div>
+                <span class="rounded-3 bg-light p-3 text-dark fs-4">
+                    <i class="bi bi-box-seam"></i>
+                </span>
             </div>
-            <span class="summary-badge"><i class="bi bi-box-seam"></i></span>
         </div>
     </div>
 
     <div class="col-12 col-md-4">
-        <div class="summary-box d-flex align-items-center justify-content-between">
-            <div>
-                <div class="text-secondary small fw-medium">Active (Current View)</div>
-                <div class="fs-2 fw-bold tabular-num mt-1 text-success">@activeInPage</div>
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-semibold">Active</div>
+                    <div class="fs-2 fw-bold mt-1 text-success">@activeCount</div>
+                </div>
+                <span class="rounded-3 bg-success-subtle p-3 text-success fs-4">
+                    <i class="bi bi-check2-circle"></i>
+                </span>
             </div>
-            <span class="summary-badge summary-badge-ok"><i class="bi bi-check2-circle"></i></span>
         </div>
     </div>
 
     <div class="col-12 col-md-4">
-        <div class="summary-box d-flex align-items-center justify-content-between">
-            <div>
-                <div class="text-secondary small fw-medium">Inactive (Current View)</div>
-                <div class="fs-2 fw-bold tabular-num mt-1 text-danger">@inactiveInPage</div>
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="text-secondary small fw-semibold">Sum of Selling Prices</div>
+                    <div class="fs-2 fw-bold mt-1 orvanta-gold-text">@viewSalesTotal.ToString("N2")</div>
+                </div>
+                <span class="rounded-3 bg-warning-subtle p-3 text-warning fs-4">
+                    <i class="bi bi-tag"></i>
+                </span>
             </div>
-            <span class="summary-badge summary-badge-muted"><i class="bi bi-slash-circle"></i></span>
         </div>
     </div>
 </div>
 
-<div class="data-card">
-    <div class="data-card-head">
+<div class="card">
+    <div class="card-header bg-transparent py-3">
         <form asp-controller="Products" asp-action="Index" method="get" id="productFilterForm"
-              class="d-flex flex-wrap flex-xl-nowrap align-items-center justify-content-between gap-2">
+              class="d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between gap-2">
             <div class="d-flex flex-wrap flex-md-nowrap align-items-center gap-2 flex-grow-1">
                 <input type="text"
                        name="SearchTerm"
                        value="@searchTerm"
                        class="form-control"
-                       style="min-width: 210px;"
+                       style="min-width: 200px;"
                        placeholder="Search name or SKU..." />
 
-                @if (categoriesSelect.Any())
+                @if (categoryIdFilter.HasValue)
                 {
-                    <select name="CategoryId" class="form-select flex-shrink-0" style="width: 170px;">
-                        <option value="">All Categories</option>
-                        @foreach (var cat in categoriesSelect)
-                        {
-                            <option value="@cat.Value" selected="@(cat.Value == categoryId ? "selected" : null)">@cat.Text</option>
-                        }
-                    </select>
+                    <input type="hidden" name="CategoryId" value="@categoryIdFilter.Value" />
+                }
+                @if (unitIdFilter.HasValue)
+                {
+                    <input type="hidden" name="UnitId" value="@unitIdFilter.Value" />
                 }
 
-                @if (unitsSelect.Any())
-                {
-                    <select name="UnitId" class="form-select flex-shrink-0" style="width: 155px;">
-                        <option value="">All Units</option>
-                        @foreach (var u in unitsSelect)
-                        {
-                            <option value="@u.Value" selected="@(u.Value == unitId ? "selected" : null)">@u.Text</option>
-                        }
-                    </select>
-                }
-
-                <select name="IsActive" class="form-select flex-shrink-0" style="width: 155px;">
+                <select name="IsActive" class="form-select flex-shrink-0" style="width: 150px;">
                     <option value="">All Statuses</option>
-                    <option value="true" selected="@(isActiveQuery == "true" ? "selected" : null)">Active</option>
-                    <option value="false" selected="@(isActiveQuery == "false" ? "selected" : null)">Inactive</option>
+                    <option value="true" selected="@(isActiveFilter == true ? "selected" : null)">Active</option>
+                    <option value="false" selected="@(isActiveFilter == false ? "selected" : null)">Inactive</option>
                 </select>
 
-                <select name="SortBy" class="form-select flex-shrink-0" style="width: 150px;">
+                <select name="SortBy" class="form-select flex-shrink-0" style="width: 155px;">
                     <option value="name" selected="@(sortBy == "name" ? "selected" : null)">Sort: Name</option>
                     <option value="sku" selected="@(sortBy == "sku" ? "selected" : null)">Sort: SKU</option>
                     <option value="sellingprice" selected="@(sortBy == "sellingprice" ? "selected" : null)">Sort: Price</option>
                 </select>
 
-                <select name="SortDirection" class="form-select flex-shrink-0" style="width: 120px;">
-                    <option value="asc" selected="@(sortDirection == "asc" ? "selected" : null)">Asc</option>
-                    <option value="desc" selected="@(sortDirection == "desc" ? "selected" : null)">Desc</option>
+                <select name="SortDirection" class="form-select flex-shrink-0" style="width: 115px;">
+                    <option value="asc" selected="@(sortDir == "asc" ? "selected" : null)">Asc</option>
+                    <option value="desc" selected="@(sortDir == "desc" ? "selected" : null)">Desc</option>
                 </select>
 
-                <input type="hidden" name="PageNumber" id="filterPageNumber" value="1" />
+                <input type="hidden" name="PageNumber" id="productPageNumber" value="1" />
                 <input type="hidden" name="PageSize" value="@pageSize" />
 
-                <button type="submit" class="btn btn-primary-dark flex-shrink-0">Filter</button>
-                <a asp-controller="Products" asp-action="Index" class="btn btn-subtle flex-shrink-0">Reset</a>
+                <button type="submit" class="btn btn-dark flex-shrink-0">Filter</button>
+                <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary flex-shrink-0">Reset</a>
             </div>
 
-            <span class="text-secondary small tabular-num text-nowrap ms-xl-2">@totalCount records</span>
+            <span class="text-secondary small text-nowrap ms-lg-2">@totalCount records</span>
         </form>
     </div>
 
-    <div class="table-responsive">
-        <table class="table grid-table mb-0" id="productsTable">
-            <thead>
-                <tr>
-                    <th class="ps-4">SKU</th>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Unit</th>
-                    <th class="text-end">Selling Price</th>
-                    <th>Status</th>
-                    <th class="pe-4 text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!items.Any())
-                {
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="productsTable">
+                <thead class="table-light">
                     <tr>
-                        <td colspan="7" class="text-center text-secondary py-5">No products found.</td>
+                        <th class="ps-4">Product</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Unit</th>
+                        <th>Selling Price</th>
+                        <th>Status</th>
+                        <th class="pe-4 text-end">Actions</th>
                     </tr>
-                }
-                else
-                {
-                    foreach (var item in items)
+                </thead>
+                <tbody>
+                    @if (list.Count == 0)
                     {
                         <tr>
-                            <td class="ps-4">
-                                <span class="badge-role tabular-num">@item.SKU</span>
-                            </td>
-                            <td class="fw-semibold">@item.Name</td>
-                            <td class="text-secondary">@item.CategoryName</td>
-                            <td class="text-secondary">@item.UnitName</td>
-                            <td class="text-end fw-semibold tabular-num">@item.SellingPrice.ToString("N2")</td>
-                            <td>
-                                @if (item.IsActive)
-                                {
-                                    <span class="state-pill state-active">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="state-pill state-inactive">Inactive</span>
-                                }
-                            </td>
-                            <td class="pe-4 text-end">
-                                <div class="d-inline-flex align-items-center gap-2">
-                                    <a asp-controller="Products"
-                                       asp-action="Details"
-                                       asp-route-id="@item.Id"
-                                       class="action-btn"
-                                       title="Details">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-
-                                    @if (canManage)
-                                    {
-                                        <a asp-controller="Products"
-                                           asp-action="Edit"
-                                           asp-route-id="@item.Id"
-                                           class="action-btn"
-                                           title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-
-                                        <form asp-controller="Products"
-                                              asp-action="ToggleStatus"
-                                              asp-route-id="@item.Id"
-                                              method="post"
-                                              class="d-inline m-0 js-toggle-product"
-                                              data-active="@item.IsActive.ToString().ToLower()">
-                                            @Html.AntiForgeryToken()
-                                            @if (item.IsActive)
-                                            {
-                                                <button type="submit"
-                                                        class="action-btn action-btn-danger"
-                                                        title="Deactivate">
-                                                    <i class="bi bi-slash-circle"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button type="submit"
-                                                        class="action-btn action-btn-success"
-                                                        title="Activate">
-                                                    <i class="bi bi-check-circle"></i>
-                                                </button>
-                                            }
-                                        </form>
-                                    }
-                                </div>
-                            </td>
+                            <td colspan="7" class="text-center text-secondary py-5">No products found.</td>
                         </tr>
                     }
-                }
-            </tbody>
-        </table>
+                    else
+                    {
+                        foreach (var item in list)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-semibold">@item.Name</td>
+                                <td>
+                                    <code class="text-dark bg-body-tertiary px-2 py-1 rounded border">@item.SKU</code>
+                                </td>
+                                <td class="text-secondary">
+                                    @(string.IsNullOrWhiteSpace(item.CategoryName) ? "—" : item.CategoryName)
+                                </td>
+                                <td class="text-secondary">
+                                    @(string.IsNullOrWhiteSpace(item.UnitName) ? "—" : item.UnitName)
+                                </td>
+                                <td class="fw-semibold">@item.SellingPrice.ToString("N2")</td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge text-bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">Inactive</span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        <a asp-controller="Products"
+                                           asp-action="Details"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        @if (canManage)
+                                        {
+                                            <a asp-controller="Products"
+                                               asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form asp-controller="Products"
+                                                  asp-action="ToggleStatus"
+                                                  asp-route-id="@item.Id"
+                                                  method="post"
+                                                  class="d-inline m-0 js-toggle-product"
+                                                  data-active="@(item.IsActive ? "true" : "false")">
+                                                @Html.AntiForgeryToken()
+                                                @if (item.IsActive)
+                                                {
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            title="Deactivate">
+                                                        <i class="bi bi-slash-circle"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-success"
+                                                            title="Activate">
+                                                        <i class="bi bi-check-circle"></i>
+                                                    </button>
+                                                }
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 
     @if (totalPages > 1)
     {
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-4 py-3 border-top"
-             style="border-color: var(--hairline); background-color: var(--bg-elevated);">
-            <div class="text-secondary small tabular-num">
+        <div class="card-footer bg-transparent d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div class="text-secondary small">
                 Page @pageNumber of @totalPages
             </div>
 
             <div class="d-flex align-items-center gap-1">
                 <button type="button"
-                        class="btn btn-subtle btn-sm js-page-btn"
+                        class="btn btn-outline-secondary btn-sm js-prod-page"
                         data-page="@(pageNumber - 1)"
                         @(pageNumber <= 1 ? "disabled" : null)>
                     Previous
@@ -290,14 +277,14 @@
                 @for (var p = 1; p <= totalPages; p++)
                 {
                     <button type="button"
-                            class="btn btn-sm js-page-btn @(p == pageNumber ? "btn-primary-dark" : "btn-subtle")"
+                            class="btn btn-sm js-prod-page @(p == pageNumber ? "btn-dark" : "btn-outline-secondary")"
                             data-page="@p">
                         @p
                     </button>
                 }
 
                 <button type="button"
-                        class="btn btn-subtle btn-sm js-page-btn"
+                        class="btn btn-outline-secondary btn-sm js-prod-page"
                         data-page="@(pageNumber + 1)"
                         @(pageNumber >= totalPages ? "disabled" : null)>
                     Next
@@ -310,37 +297,43 @@
 @section Scripts {
     <script>
         (function () {
-            const filterForm = document.getElementById('productFilterForm');
-            const pageInput = document.getElementById('filterPageNumber');
+            var filterForm = document.getElementById('productFilterForm');
+            var pageInput = document.getElementById('productPageNumber');
 
-            document.querySelectorAll('.js-page-btn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const targetPage = this.getAttribute('data-page');
-                    if (!targetPage || !filterForm || !pageInput) return;
-                    pageInput.value = targetPage;
-                    filterForm.submit();
+            var pageBtns = document.querySelectorAll('.js-prod-page');
+            for (var i = 0; i < pageBtns.length; i++) {
+                pageBtns[i].addEventListener('click', function () {
+                    var targetPage = this.getAttribute('data-page');
+                    if (targetPage && filterForm && pageInput) {
+                        pageInput.value = targetPage;
+                        filterForm.submit();
+                    }
                 });
-            });
+            }
 
-            document.querySelectorAll('.js-toggle-product').forEach(function (form) {
-                form.addEventListener('submit', function (e) {
+            var toggleForms = document.querySelectorAll('.js-toggle-product');
+            for (var j = 0; j < toggleForms.length; j++) {
+                toggleForms[j].addEventListener('submit', function (e) {
                     e.preventDefault();
-                    const active = form.getAttribute('data-active') === 'true';
+                    var formEl = this;
+                    var active = formEl.getAttribute('data-active') === 'true';
                     if (typeof Swal === 'undefined') {
-                        form.submit();
+                        formEl.submit();
                         return;
                     }
                     Swal.fire({
                         title: active ? 'Deactivate product?' : 'Activate product?',
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: active ? '#b02a37' : '#111317',
+                        confirmButtonColor: active ? '#dc3545' : '#198754',
                         confirmButtonText: 'Confirm'
                     }).then(function (res) {
-                        if (res.isConfirmed) form.submit();
+                        if (res.isConfirmed) {
+                            formEl.submit();
+                        }
                     });
                 });
-            });
+            }
         })();
     </script>
 }

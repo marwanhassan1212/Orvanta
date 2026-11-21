@@ -1,197 +1,259 @@
 ﻿@{
-    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    var pageTitle = ViewData["Title"]?.ToString() ?? "Orvanta";
+    var pageSubtitle = ViewData["Subtitle"]?.ToString();
+    var userName = User.Identity?.Name ?? "User";
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — Orvanta</title>
+    <title>@pageTitle - Orvanta</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
-
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Orvanta.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/orvanta-theme.css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <div class="mobile-scrim" id="mobileScrim"></div>
+<body class="layout-fixed sidebar-expand-lg">
+    <div class="app-wrapper">
 
-    <div class="app-shell">
-        <aside class="side-rail" id="sideRail">
-            <div class="brand-header">
-                <a asp-controller="Home" asp-action="Index" class="brand-mark-wrap">
-                    <span class="brand-emblem">O</span>
-                    <div>
-                        <div class="brand-wordmark">Orvanta</div>
-                        <div class="brand-edition">Enterprise ERP</div>
+        <!-- Top Navbar -->
+        <nav class="app-header navbar navbar-expand bg-body border-bottom">
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle navigation">
+                            <i class="bi bi-list fs-5"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item d-none d-md-flex align-items-center ms-2">
+                        <span class="text-secondary small fw-medium">Orvanta ERP</span>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-5"></i>
+                                <span class="d-none d-sm-inline small fw-semibold">@userName</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-semibold small">@userName</div>
+                                    <div class="text-secondary" style="font-size: 0.78rem;">
+                                        @(User.IsInRole("Admin") ? "Administrator" : "Staff")
+                                    </div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword">
+                                        <i class="bi bi-key me-2"></i>Change Password
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1" /></li>
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item py-2 text-danger">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="app-sidebar bg-dark shadow" data-bs-theme="dark">
+            <div class="sidebar-brand px-3 py-3 border-bottom border-secondary border-opacity-25">
+                <a asp-controller="Home" asp-action="Index" class="brand-link d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="orvanta-brand-badge">O</span>
+                    <div class="d-flex flex-column">
+                        <span class="brand-text fw-bold text-white lh-1">Orvanta</span>
+                        <span class="orvanta-gold-text text-uppercase fw-semibold mt-1" style="font-size: 0.65rem; letter-spacing: 0.14em;">Enterprise ERP</span>
                     </div>
                 </a>
-                <button type="button" class="btn btn-sm text-white-50 d-lg-none p-1" id="closeRailBtn" aria-label="Close">
-                    <i class="bi bi-x-lg fs-5"></i>
-                </button>
             </div>
 
-            <nav class="side-menu">
-                <a class="menu-link @(currentController == "Home" ? "is-active" : "")"
-                   asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-grid-1x2"></i>
-                    <span>Overview</span>
-                </a>
+            <div class="sidebar-wrapper">
+                <nav class="mt-2">
+                    <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
 
-                <div class="menu-group">Catalog &amp; Partners</div>
+                        <li class="nav-item">
+                            <a asp-controller="Home" asp-action="Index"
+                               class="nav-link @(currentController == "Home" ? "active" : "")">
+                                <i class="nav-icon bi bi-speedometer2"></i>
+                                <p>Overview</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Categories" ? "is-active" : "")"
-                   asp-controller="Categories" asp-action="Index">
-                    <i class="bi bi-layers"></i>
-                    <span>Categories</span>
-                </a>
+                        <li class="nav-header text-uppercase small mt-2">Catalog &amp; Partners</li>
 
-                <a class="menu-link @(currentController == "Units" ? "is-active" : "")"
-                   asp-controller="Units" asp-action="Index">
-                    <i class="bi bi-rulers"></i>
-                    <span>Units</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Categories" asp-action="Index"
+                               class="nav-link @(currentController == "Categories" ? "active" : "")">
+                                <i class="nav-icon bi bi-layers"></i>
+                                <p>Categories</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Products" ? "is-active" : "")"
-                   asp-controller="Products" asp-action="Index">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Products</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Units" asp-action="Index"
+                               class="nav-link @(currentController == "Units" ? "active" : "")">
+                                <i class="nav-icon bi bi-rulers"></i>
+                                <p>Units</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Customers" ? "is-active" : "")"
-                   asp-controller="Customers" asp-action="Index">
-                    <i class="bi bi-people"></i>
-                    <span>Customers</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Products" asp-action="Index"
+                               class="nav-link @(currentController == "Products" ? "active" : "")">
+                                <i class="nav-icon bi bi-box-seam"></i>
+                                <p>Products</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Suppliers" ? "is-active" : "")"
-                   asp-controller="Suppliers" asp-action="Index">
-                    <i class="bi bi-truck"></i>
-                    <span>Suppliers</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Customers" asp-action="Index"
+                               class="nav-link @(currentController == "Customers" ? "active" : "")">
+                                <i class="nav-icon bi bi-people"></i>
+                                <p>Customers</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Warehouses" ? "is-active" : "")"
-                   asp-controller="Warehouses" asp-action="Index">
-                    <i class="bi bi-buildings"></i>
-                    <span>Warehouses</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Suppliers" asp-action="Index"
+                               class="nav-link @(currentController == "Suppliers" ? "active" : "")">
+                                <i class="nav-icon bi bi-truck"></i>
+                                <p>Suppliers</p>
+                            </a>
+                        </li>
 
-                <div class="menu-group">Operations</div>
+                        <li class="nav-item">
+                            <a asp-controller="Warehouses" asp-action="Index"
+                               class="nav-link @(currentController == "Warehouses" ? "active" : "")">
+                                <i class="nav-icon bi bi-buildings"></i>
+                                <p>Warehouses</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Inventory" ? "is-active" : "")"
-                   asp-controller="Inventory" asp-action="Index">
-                    <i class="bi bi-archive"></i>
-                    <span>Inventory</span>
-                </a>
+                        <li class="nav-header text-uppercase small mt-2">Operations</li>
 
-                <a class="menu-link @(currentController == "Sales" ? "is-active" : "")"
-                   asp-controller="Sales" asp-action="Index">
-                    <i class="bi bi-bag-check"></i>
-                    <span>Sales</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Inventory" asp-action="Index"
+                               class="nav-link @(currentController == "Inventory" ? "active" : "")">
+                                <i class="nav-icon bi bi-archive"></i>
+                                <p>Inventory</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Purchases" ? "is-active" : "")"
-                   asp-controller="Purchases" asp-action="Index">
-                    <i class="bi bi-cart3"></i>
-                    <span>Purchases</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Sales" asp-action="Index"
+                               class="nav-link @(currentController == "Sales" ? "active" : "")">
+                                <i class="nav-icon bi bi-bag-check"></i>
+                                <p>Sales</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Payments" ? "is-active" : "")"
-                   asp-controller="Payments" asp-action="Index">
-                    <i class="bi bi-wallet2"></i>
-                    <span>Payments</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Purchases" asp-action="Index"
+                               class="nav-link @(currentController == "Purchases" ? "active" : "")">
+                                <i class="nav-icon bi bi-cart3"></i>
+                                <p>Purchases</p>
+                            </a>
+                        </li>
 
-                <a class="menu-link @(currentController == "Expenses" ? "is-active" : "")"
-                   asp-controller="Expenses" asp-action="Index">
-                    <i class="bi bi-receipt"></i>
-                    <span>Expenses</span>
-                </a>
+                        <li class="nav-item">
+                            <a asp-controller="Payments" asp-action="Index"
+                               class="nav-link @(currentController == "Payments" ? "active" : "")">
+                                <i class="nav-icon bi bi-wallet2"></i>
+                                <p>Payments</p>
+                            </a>
+                        </li>
 
-                <div class="menu-group">System</div>
+                        <li class="nav-item">
+                            <a asp-controller="Expenses" asp-action="Index"
+                               class="nav-link @(currentController == "Expenses" ? "active" : "")">
+                                <i class="nav-icon bi bi-receipt"></i>
+                                <p>Expenses</p>
+                            </a>
+                        </li>
 
-                @if (User.IsInRole("Admin"))
-                {
-                    <a class="menu-link @(currentController == "UserManagement" ? "is-active" : "")"
-                       asp-controller="UserManagement" asp-action="Index">
-                        <i class="bi bi-shield-lock"></i>
-                        <span>User Management</span>
-                    </a>
-                }
+                        <li class="nav-header text-uppercase small mt-2">System</li>
 
-                <a class="menu-link @(currentController == "Reports" ? "is-active" : "")"
-                   asp-controller="Reports" asp-action="Index">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Reports</span>
-                </a>
-            </nav>
+                        <li class="nav-item">
+                            <a asp-controller="UserManagement" asp-action="Index"
+                               class="nav-link @(currentController == "UserManagement" ? "active" : "")">
+                                <i class="nav-icon bi bi-shield-lock"></i>
+                                <p>User Management</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item @(currentController == "Reports" ? "menu-open" : "")">
+                            <a href="#" class="nav-link @(currentController == "Reports" ? "active" : "")">
+                                <i class="nav-icon bi bi-graph-up-arrow"></i>
+                                <p>
+                                    Reports
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Reports" asp-action="Index"
+                                       class="nav-link @(currentController == "Reports" && currentAction == "Index" ? "active" : "")">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Reports Overview</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Reports" asp-action="Sales"
+                                       class="nav-link @(currentController == "Reports" && currentAction == "Sales" ? "active" : "")">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Sales Report</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Reports" asp-action="Purchases"
+                                       class="nav-link @(currentController == "Reports" && currentAction == "Purchases" ? "active" : "")">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Purchases Report</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Reports" asp-action="Inventory"
+                                       class="nav-link @(currentController == "Reports" && currentAction == "Inventory" ? "active" : "")">
+                                        <i class="nav-icon bi bi-circle"></i>
+                                        <p>Inventory Report</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                    </ul>
+                </nav>
+            </div>
         </aside>
 
-        <div class="main-area">
-            <header class="top-header">
-                <div class="d-flex align-items-center gap-3">
-                    <button type="button" class="btn btn-subtle d-lg-none py-1 px-2" id="openRailBtn" aria-label="Open menu">
-                        <i class="bi bi-list fs-5"></i>
-                    </button>
-                    <div class="d-none d-sm-flex align-items-center gap-2 small text-secondary">
-                        <i class="bi bi-diamond-fill" style="font-size: 0.45rem; color: var(--gold-primary);"></i>
-                        <span>Orvanta Workspace</span>
-                    </div>
-                </div>
-
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    var initial = string.IsNullOrWhiteSpace(User.Identity.Name)
-                    ? "U"
-                    : User.Identity.Name.Substring(0, 1).ToUpperInvariant();
-
-                    <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle"
-                           data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--ink-primary);">
-                            <span class="profile-chip">@initial</span>
-                            <div class="d-none d-md-block text-start lh-sm">
-                                <div class="fw-semibold small">@User.Identity.Name</div>
-                                <div style="font-size: 0.72rem; color: var(--ink-secondary);">
-                                    @(User.IsInRole("Admin") ? "Administrator" : "Staff")
-                                </div>
-                            </div>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 12px; min-width: 200px;">
-                            <li>
-                                <a class="dropdown-item py-2" asp-controller="Account" asp-action="ChangePassword">
-                                    <i class="bi bi-key me-2 text-secondary"></i> Change Password
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1" /></li>
-                            <li>
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="dropdown-item py-2 text-danger">
-                                        <i class="bi bi-box-arrow-right me-2"></i> Sign Out
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                }
-            </header>
-
-            <main class="workspace-body">
-                <div class="page-header-bar">
+        <!-- Main Content -->
+        <main class="app-main">
+            <div class="app-content-header py-3 border-bottom bg-body-tertiary">
+                <div class="container-fluid d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <div>
-                        @if (ViewData["Subtitle"] != null)
+                        <h1 class="h4 fw-bold mb-0">@pageTitle</h1>
+                        @if (!string.IsNullOrWhiteSpace(pageSubtitle))
                         {
-                            <div class="page-eyebrow">@ViewData["Subtitle"]</div>
+                            <div class="text-secondary small">@pageSubtitle</div>
                         }
-                        <h1 class="page-title">@ViewData["Title"]</h1>
                     </div>
 
                     @if (IsSectionDefined("PageActions"))
@@ -201,64 +263,55 @@
                         </div>
                     }
                 </div>
+            </div>
 
-                @RenderBody()
-            </main>
+            <div class="app-content py-4">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </main>
 
-            <footer class="app-footer">
-                <span>&copy; 2026 Orvanta. All rights reserved.</span>
-                <span class="d-none d-sm-inline">Inventory &amp; Sales Management</span>
-            </footer>
-        </div>
+        <!-- Footer -->
+        <footer class="app-footer py-3 px-4 border-top bg-body small text-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>&copy; 2026 <strong>Orvanta</strong></div>
+            <div>Inventory &amp; Sales Management</div>
+        </footer>
+
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/js/adminlte.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>
         (function () {
-            const rail = document.getElementById('sideRail');
-            const scrim = document.getElementById('mobileScrim');
-            const openBtn = document.getElementById('openRailBtn');
-            const closeBtn = document.getElementById('closeRailBtn');
-
-            function toggleRail(show) {
-                if (!rail || !scrim) return;
-                rail.classList.toggle('is-open', show);
-                scrim.classList.toggle('is-open', show);
+            if (typeof Swal === 'undefined') {
+                return;
             }
+            var toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
 
-            openBtn?.addEventListener('click', () => toggleRail(true));
-            closeBtn?.addEventListener('click', () => toggleRail(false));
-            scrim?.addEventListener('click', () => toggleRail(false));
-
-            if (typeof Swal !== 'undefined') {
-                const notify = Swal.mixin({
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3200,
-                    timerProgressBar: true
-                });
-
-                @if (TempData["Success"] != null)
-                {
-                        <text>notify.fire({ icon: 'success', title: '@TempData["Success"]' });</text>
-                }
-                @if (TempData["SuccessMessage"] != null)
-                {
-                        <text>notify.fire({ icon: 'success', title: '@TempData["SuccessMessage"]' });</text>
-                }
-                @if (TempData["Error"] != null)
-                {
-                        <text>notify.fire({ icon: 'error', title: '@TempData["Error"]' });</text>
-                }
-                @if (TempData["ErrorMessage"] != null)
-                {
-                        <text>notify.fire({ icon: 'error', title: '@TempData["ErrorMessage"]' });</text>
-                }
+            @if (TempData["Success"] != null)
+            {
+                    <text>toast.fire({ icon: 'success', title: '@TempData["Success"]' });</text>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                    <text>toast.fire({ icon: 'success', title: '@TempData["SuccessMessage"]' });</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                    <text>toast.fire({ icon: 'error', title: '@TempData["Error"]' });</text>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                    <text>toast.fire({ icon: 'error', title: '@TempData["ErrorMessage"]' });</text>
             }
         })();
     </script>

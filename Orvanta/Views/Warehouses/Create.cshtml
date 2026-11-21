@@ -7,13 +7,13 @@
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8 col-xl-7">
-        <div class="data-card">
-            <div class="data-card-head">
-                <h2 class="h6 fw-semibold mb-0">Create Warehouse</h2>
-                <div class="text-secondary small">Register a storage facility with a unique code</div>
+        <div class="card">
+            <div class="card-header bg-transparent py-3">
+                <h2 class="h6 fw-bold mb-0">Create Warehouse</h2>
+                <div class="text-secondary small">Add a new warehouse with a unique code and address</div>
             </div>
 
-            <div class="data-card-body">
+            <div class="card-body">
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
                     <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
@@ -28,28 +28,28 @@
                     @Html.AntiForgeryToken()
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-7">
-                            <label asp-for="Name" class="form-label"></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        <div class="col-sm-7">
+                            <label asp-for="Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="Main Distribution Center" />
+                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
                         </div>
 
-                        <div class="col-md-5">
-                            <label asp-for="Code" class="form-label"></label>
-                            <input asp-for="Code" class="form-control" />
-                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        <div class="col-sm-5">
+                            <label asp-for="Code" class="form-label fw-semibold"></label>
+                            <input asp-for="Code" class="form-control" placeholder="WH-MAIN-01" />
+                            <span asp-validation-for="Code" class="text-danger small d-block mt-1"></span>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Address" class="form-label"></label>
-                        <textarea asp-for="Address" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="Address" class="text-danger small"></span>
+                        <label asp-for="Address" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Warehouse street address, city..."></textarea>
+                        <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
-                        <a asp-controller="Warehouses" asp-action="Index" class="btn btn-subtle">Cancel</a>
-                        <button type="submit" class="btn btn-primary-dark">Save Warehouse</button>
+                        <a asp-controller="Warehouses" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Warehouse</button>
                     </div>
                 </form>
             </div>

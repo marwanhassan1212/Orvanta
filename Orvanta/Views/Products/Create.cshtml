@@ -3,20 +3,17 @@
     ViewData["Title"] = "Add Product";
     ViewData["Subtitle"] = "Products";
     Layout = "_AdminLayout";
-
-    var categories = ViewBag.Categories as SelectList ?? new SelectList(Enumerable.Empty<object>());
-    var units = ViewBag.Units as SelectList ?? new SelectList(Enumerable.Empty<object>());
 }
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-9 col-xl-8">
-        <div class="data-card">
-            <div class="data-card-head">
-                <h2 class="h6 fw-semibold mb-0">Create Product</h2>
-                <div class="text-secondary small">Add item details, category, unit, and pricing</div>
+        <div class="card">
+            <div class="card-header bg-transparent py-3">
+                <h2 class="h6 fw-bold mb-0">Create Product</h2>
+                <div class="text-secondary small">Add a new product with SKU, classification, unit, and pricing</div>
             </div>
 
-            <div class="data-card-body">
+            <div class="card-body">
                 @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
                 {
                     <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
@@ -31,60 +28,60 @@
                     @Html.AntiForgeryToken()
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-8">
-                            <label asp-for="Name" class="form-label"></label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        <div class="col-sm-7">
+                            <label asp-for="Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Name" class="form-control" placeholder="Product name" />
+                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
                         </div>
 
-                        <div class="col-md-4">
-                            <label asp-for="SKU" class="form-label"></label>
-                            <input asp-for="SKU" class="form-control" />
-                            <span asp-validation-for="SKU" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-sm-6">
-                            <label asp-for="CategoryId" class="form-label">Category</label>
-                            <select asp-for="CategoryId" asp-items="categories" class="form-select">
-                                <option value="">Select category</option>
-                            </select>
-                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-sm-6">
-                            <label asp-for="UnitId" class="form-label">Unit</label>
-                            <select asp-for="UnitId" asp-items="units" class="form-select">
-                                <option value="">Select unit</option>
-                            </select>
-                            <span asp-validation-for="UnitId" class="text-danger small"></span>
+                        <div class="col-sm-5">
+                            <label asp-for="SKU" class="form-label fw-semibold"></label>
+                            <input asp-for="SKU" class="form-control" placeholder="PRD-001" />
+                            <span asp-validation-for="SKU" class="text-danger small d-block mt-1"></span>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-sm-6">
-                            <label asp-for="PurchasePrice" class="form-label"></label>
-                            <input asp-for="PurchasePrice" type="number" step="0.01" min="0" class="form-control tabular-num" />
-                            <span asp-validation-for="PurchasePrice" class="text-danger small"></span>
+                            <label asp-for="CategoryId" class="form-label fw-semibold"></label>
+                            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small d-block mt-1"></span>
                         </div>
 
                         <div class="col-sm-6">
-                            <label asp-for="SellingPrice" class="form-label"></label>
-                            <input asp-for="SellingPrice" type="number" step="0.01" min="0" class="form-control tabular-num" />
-                            <span asp-validation-for="SellingPrice" class="text-danger small"></span>
+                            <label asp-for="UnitId" class="form-label fw-semibold"></label>
+                            <select asp-for="UnitId" asp-items="ViewBag.Units" class="form-select">
+                                <option value="">-- Select Unit --</option>
+                            </select>
+                            <span asp-validation-for="UnitId" class="text-danger small d-block mt-1"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label asp-for="PurchasePrice" class="form-label fw-semibold"></label>
+                            <input asp-for="PurchasePrice" type="number" step="0.01" min="0" class="form-control" />
+                            <span asp-validation-for="PurchasePrice" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label asp-for="SellingPrice" class="form-label fw-semibold"></label>
+                            <input asp-for="SellingPrice" type="number" step="0.01" min="0" class="form-control" />
+                            <span asp-validation-for="SellingPrice" class="text-danger small d-block mt-1"></span>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label asp-for="Description" class="form-label"></label>
-                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="Description" class="text-danger small"></span>
+                        <label asp-for="Description" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional product description..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small d-block mt-1"></span>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
-                        <a asp-controller="Products" asp-action="Index" class="btn btn-subtle">Cancel</a>
-                        <button type="submit" class="btn btn-primary-dark">Save Product</button>
+                        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Product</button>
                     </div>
                 </form>
             </div>

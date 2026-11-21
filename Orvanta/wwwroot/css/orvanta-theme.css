@@ -1,0 +1,155 @@
+﻿:root {
+    --orvanta-gold: #B3873B;
+    --orvanta-gold-light: #D4AA5E;
+    --orvanta-gold-dark: #8A611C;
+    --orvanta-obsidian: #101318;
+    --orvanta-obsidian-2: #161A22;
+    --orvanta-surface: #F4F1EA;
+}
+
+html,
+body {
+    background-color: var(--orvanta-surface);
+    color: #141619;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #101318;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(212, 170, 94, 0.55);
+    border-radius: 999px;
+    border: 2px solid #101318;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(212, 170, 94, 0.85);
+    }
+
+/* Force full-height dark background across AdminLTE 4 sidebar & submenus */
+aside.app-sidebar,
+aside.app-sidebar.bg-dark,
+aside.app-sidebar[data-bs-theme="dark"] {
+    --lte-sidebar-bg: #101318;
+    --lte-sidebar-color: rgba(245, 240, 230, 0.86);
+    --lte-sidebar-hover-bg: rgba(212, 170, 94, 0.08);
+    --lte-sidebar-hover-color: #F6DC9E;
+    --lte-sidebar-active-bg: rgba(212, 170, 94, 0.16);
+    --lte-sidebar-active-color: #F6DC9E;
+    --lte-sidebar-submenu-bg: #0B0D11;
+    --lte-sidebar-submenu-color: rgba(245, 240, 230, 0.78);
+    --lte-sidebar-submenu-hover-color: #F6DC9E;
+    --lte-sidebar-submenu-active-color: #F6DC9E;
+    background-color: #101318 !important;
+    background-image: linear-gradient(180deg, #13171F 0%, #0E1015 100%) !important;
+    color: rgba(245, 240, 230, 0.86) !important;
+    border-right: 1px solid rgba(212, 170, 94, 0.18) !important;
+    min-height: 100vh !important;
+    height: 100% !important;
+}
+
+    aside.app-sidebar .sidebar-wrapper {
+        background-color: transparent !important;
+        min-height: calc(100vh - 64px);
+        padding-bottom: 2rem !important;
+        overflow-y: auto !important;
+    }
+
+    aside.app-sidebar .nav-header {
+        color: rgba(212, 170, 94, 0.72) !important;
+        background-color: transparent !important;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        opacity: 1 !important;
+    }
+
+    aside.app-sidebar .sidebar-menu .nav-link {
+        color: rgba(245, 240, 230, 0.86) !important;
+        background-color: transparent;
+    }
+
+        aside.app-sidebar .sidebar-menu .nav-link:hover {
+            color: #F6DC9E !important;
+            background-color: rgba(212, 170, 94, 0.08) !important;
+        }
+
+        aside.app-sidebar .sidebar-menu .nav-link.active {
+            background: linear-gradient(90deg, rgba(212, 170, 94, 0.22) 0%, rgba(212, 170, 94, 0.03) 100%) !important;
+            color: #F6DC9E !important;
+            box-shadow: inset 3px 0 0 #D4AA5E;
+        }
+
+        aside.app-sidebar .sidebar-menu .nav-link .nav-icon,
+        aside.app-sidebar .sidebar-menu .nav-link .nav-arrow {
+            color: rgba(245, 240, 230, 0.72) !important;
+        }
+
+        aside.app-sidebar .sidebar-menu .nav-link:hover .nav-icon,
+        aside.app-sidebar .sidebar-menu .nav-link:hover .nav-arrow,
+        aside.app-sidebar .sidebar-menu .nav-link.active .nav-icon,
+        aside.app-sidebar .sidebar-menu .nav-link.active .nav-arrow {
+            color: #D4AA5E !important;
+        }
+
+    aside.app-sidebar .nav-treeview {
+        background-color: rgba(0, 0, 0, 0.22) !important;
+    }
+
+.orvanta-brand-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #DFB86C 0%, #936821 100%);
+    color: #101318;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.orvanta-gold-text {
+    color: var(--orvanta-gold-light) !important;
+}
+
+/* Primary button & card top accent */
+.btn-primary {
+    background: linear-gradient(135deg, #C79A4B 0%, #936821 100%);
+    border-color: #8A611C;
+    color: #FFFFFF;
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus,
+    .btn-primary:active {
+        background: linear-gradient(135deg, #D4AA5E 0%, #A47528 100%);
+        border-color: #7D5818;
+        color: #FFFFFF;
+    }
+
+.card {
+    border: 1px solid rgba(20, 22, 25, 0.09);
+    box-shadow: 0 12px 28px -20px rgba(16, 19, 24, 0.25);
+    overflow: hidden;
+}
+
+    .card::before {
+        content: "";
+        display: block;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(179, 135, 59, 0.75), rgba(212, 170, 94, 0.18), transparent);
+    }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--orvanta-gold);
+    box-shadow: 0 0 0 0.2rem rgba(179, 135, 59, 0.16);
+}

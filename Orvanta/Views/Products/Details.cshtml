@@ -5,90 +5,80 @@
     Layout = "_AdminLayout";
 
     var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
-    var margin = Model.SellingPrice - Model.PurchasePrice;
 }
 
 @section PageActions {
-    <a asp-controller="Products" asp-action="Index" class="btn btn-subtle">Back</a>
+    <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary">Back</a>
     @if (canManage)
     {
-        <a asp-controller="Products" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+        <a asp-controller="Products" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Edit</a>
     }
 }
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-9 col-xl-8">
-        <div class="data-card">
-            <div class="data-card-head d-flex align-items-center justify-content-between">
+        <div class="card">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
                 <div>
-                    <h2 class="h6 fw-semibold mb-0">Product Overview</h2>
-                    <div class="text-secondary small">Pricing, classification, and audit details</div>
+                    <h2 class="h6 fw-bold mb-0">Product Details</h2>
+                    <div class="text-secondary small">SKU, category, unit, pricing, and status</div>
                 </div>
                 @if (Model.IsActive)
                 {
-                    <span class="state-pill state-active">Active</span>
+                    <span class="badge text-bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">Active</span>
                 }
                 else
                 {
-                    <span class="state-pill state-inactive">Inactive</span>
+                    <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">Inactive</span>
                 }
             </div>
 
-            <div class="data-card-body">
+            <div class="card-body">
                 <div class="row g-3">
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Product Name</div>
                             <div class="fw-semibold">@Model.Name</div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">SKU</div>
-                            <div><span class="badge-role tabular-num">@Model.SKU</span></div>
+                            <div><code class="text-dark fw-semibold">@Model.SKU</code></div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Category</div>
-                            <div class="fw-semibold">@Model.CategoryName</div>
+                            <div class="fw-medium">@Model.CategoryName</div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Unit</div>
-                            <div class="fw-semibold">@Model.UnitName</div>
+                            <div class="fw-medium">@Model.UnitName</div>
                         </div>
                     </div>
 
-                    <div class="col-sm-4">
-                        <div class="info-row-box h-100">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Purchase Price</div>
-                            <div class="fs-5 fw-bold tabular-num">@Model.PurchasePrice.ToString("N2")</div>
+                            <div class="fw-bold">@Model.PurchasePrice.ToString("N2")</div>
                         </div>
                     </div>
 
-                    <div class="col-sm-4">
-                        <div class="info-row-box h-100">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Selling Price</div>
-                            <div class="fs-5 fw-bold tabular-num">@Model.SellingPrice.ToString("N2")</div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-4">
-                        <div class="info-row-box h-100">
-                            <div class="text-secondary small mb-1">Gross Spread</div>
-                            <div class="fs-5 fw-bold tabular-num @(margin >= 0 ? "text-success" : "text-danger")">
-                                @margin.ToString("N2")
-                            </div>
+                            <div class="fw-bold orvanta-gold-text">@Model.SellingPrice.ToString("N2")</div>
                         </div>
                     </div>
 
                     <div class="col-12">
-                        <div class="info-row-box">
+                        <div class="p-3 rounded-3 border bg-body-tertiary">
                             <div class="text-secondary small mb-1">Description</div>
                             <div class="@(string.IsNullOrWhiteSpace(Model.Description) ? "text-secondary fst-italic small" : "")">
                                 @(string.IsNullOrWhiteSpace(Model.Description) ? "No description provided." : Model.Description)
@@ -97,16 +87,16 @@
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Created At</div>
-                            <div class="small fw-medium tabular-num">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                            <div class="small fw-medium">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
                         </div>
                     </div>
 
                     <div class="col-sm-6">
-                        <div class="info-row-box h-100">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Last Updated</div>
-                            <div class="small fw-medium tabular-num">
+                            <div class="small fw-medium">
                                 @(Model.UpdatedAt.HasValue? Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm") : "—")
                             </div>
                         </div>

@@ -1,16 +1,31 @@
 ﻿@{
     ViewData["Title"] = "Access Denied";
+    ViewData["Subtitle"] = "Permissions";
     Layout = "_AdminLayout";
 }
 
-<div class="row justify-content-center">
-    <div class="col-12 col-md-7 col-lg-5">
-        <div class="data-card">
-            <div class="data-card-body py-5 text-center">
-                <div class="font-display fw-bold mb-1" style="font-size: 3.4rem; line-height: 1; color: var(--gold-primary);">403</div>
-                <h2 class="h5 fw-semibold mb-2">Restricted Access</h2>
-                <p class="text-secondary small mb-4">Your current role does not have permission to view this section.</p>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary-dark">Back to Overview</a>
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card text-center">
+            <div class="card-body p-4 p-sm-5">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-3"
+                     style="width: 64px; height: 64px;">
+                    <i class="bi bi-shield-exclamation fs-2"></i>
+                </div>
+
+                <h2 class="h4 fw-bold mb-2">Access Denied</h2>
+                <p class="text-secondary mb-4">
+                    You do not have permission to view this page or perform this action. Please contact an administrator if you believe this is a mistake.
+                </p>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        <i class="bi bi-house-door me-1"></i> Back to Overview
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        Go Back
+                    </a>
+                </div>
             </div>
         </div>
     </div>

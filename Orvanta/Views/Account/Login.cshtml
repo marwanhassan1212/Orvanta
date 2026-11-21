@@ -2,157 +2,141 @@
 @{
     ViewData["Title"] = "Sign In";
     Layout = null;
+
+    var returnUrl = Model?.ReturnUrl
+        ?? ViewData["ReturnUrl"] as string
+        ?? Context.Request.Query["ReturnUrl"].ToString();
+
+    var hasGeneralErrors = !ViewData.ModelState.IsValid &&
+                           ViewData.ModelState.TryGetValue(string.Empty, out var rootEntry) &&
+                           rootEntry.Errors.Count > 0;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — Orvanta</title>
+    <title>Sign In - Orvanta</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="~/css/orvanta-theme.css" asp-append-version="true" />
 
     <style>
-        .auth-stage {
+        .orvanta-auth-shell {
             min-height: 100vh;
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
+            background: radial-gradient(circle at top, #1D222C 0%, #0E1015 65%, #0A0C0F 100%);
         }
 
-        .auth-brand-pane {
-            background: linear-gradient(160deg, #151921 0%, #0C0E12 100%);
-            color: #F5F2EB;
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-right: 1px solid rgba(212, 170, 94, 0.16);
-        }
-
-        .auth-form-pane {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .auth-box {
+        .orvanta-auth-card {
             width: 100%;
-            max-width: 410px;
-            background: var(--bg-surface);
-            border: 1px solid var(--hairline);
-            border-radius: var(--radius-card);
-            padding: 2.25rem 2rem;
-            box-shadow: var(--shadow-float);
+            max-width: 430px;
+            border-radius: 16px;
+            background-color: #FFFFFF;
+            box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
         }
 
-        @@media (max-width: 991.98px) {
-            .auth-stage {
-                grid-template-columns: 1fr;
+            .orvanta-auth-card::before {
+                content: "";
+                display: block;
+                height: 3px;
+                background: linear-gradient(90deg, #936821, #E0B96E, #936821);
             }
-
-            .auth-brand-pane {
-                display: none;
-            }
-        }
     </style>
 </head>
-<body>
-    <div class="auth-stage">
-        <div class="auth-brand-pane">
-            <div class="brand-mark-wrap">
-                <span class="brand-emblem">O</span>
-                <div>
-                    <div class="brand-wordmark">Orvanta</div>
-                    <div class="brand-edition">Enterprise ERP</div>
+<body class="orvanta-auth-shell d-flex align-items-center justify-content-center p-3">
+
+    <div class="orvanta-auth-card">
+        <div class="p-4 p-sm-5">
+            <div class="text-center mb-4">
+                <div class="orvanta-brand-badge mx-auto mb-3" style="width: 46px; height: 46px; font-size: 1.3rem;">
+                    O
                 </div>
+                <h1 class="h4 fw-bold mb-1">Orvanta ERP</h1>
+                <div class="text-secondary small">Sign in to manage operations and inventory</div>
             </div>
 
-            <div>
-                <div class="page-eyebrow mb-2" style="color: var(--gold-bright);">Operations &amp; Control</div>
-                <h2 class="font-display fw-bold mb-3" style="font-size: 2.75rem; line-height: 1.1; color: #FFFFFF;">
-                    Precision in every movement of stock and sale.
-                </h2>
-                <p class="mb-0" style="color: rgba(245, 242, 235, 0.68); max-width: 430px; line-height: 1.65;">
-                    Manage inventory, warehouses, purchasing, and sales operations from a unified workspace.
-                </p>
-            </div>
+            @if (hasGeneralErrors)
+            {
+                <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
+                    @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>@err.ErrorMessage</div>
+                    }
+                </div>
+            }
 
-            <div class="small" style="color: rgba(245, 242, 235, 0.45);">
-                &copy; 2026 Orvanta
-            </div>
-        </div>
+            <form asp-controller="Account" asp-action="Login" method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <input asp-for="ReturnUrl" type="hidden" value="@returnUrl" />
 
-        <div class="auth-form-pane">
-            <div class="auth-box">
-                <div class="mb-4">
-                    <div class="page-eyebrow">Welcome back</div>
-                    <h1 class="font-display fw-bold mb-1" style="font-size: 2.15rem;">Sign in</h1>
-                    <p class="text-secondary small mb-0">Enter your credentials to access your workspace.</p>
+                <div class="mb-3">
+                    <label asp-for="LoginIdentifier" class="form-label fw-semibold small"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-body-tertiary"><i class="bi bi-person"></i></span>
+                        <input asp-for="LoginIdentifier"
+                               class="form-control"
+                               placeholder="Username or email"
+                               autofocus />
+                    </div>
+                    <span asp-validation-for="LoginIdentifier" class="text-danger small d-block mt-1"></span>
                 </div>
 
-                @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
-                {
-                    <div class="alert alert-danger py-2 px-3 small mb-3" role="alert">
-                        @foreach (var err in ViewData.ModelState[string.Empty]!.Errors)
-                        {
-                            <div>@err.ErrorMessage</div>
-                        }
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold small"></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-body-tertiary"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password"
+                               id="loginPasswordInput"
+                               type="password"
+                               class="form-control"
+                               placeholder="••••••••" />
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                id="toggleLoginPassword"
+                                aria-label="Toggle password visibility">
+                            <i class="bi bi-eye" id="toggleLoginPasswordIcon"></i>
+                        </button>
                     </div>
-                }
+                    <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
+                </div>
 
-                <form asp-controller="Account" asp-action="Login" method="post" autocomplete="off">
-                    @Html.AntiForgeryToken()
-                    <input asp-for="ReturnUrl" type="hidden" />
-
-                    <div class="mb-3">
-                        <label asp-for="LoginIdentifier" class="form-label"></label>
-                        <input asp-for="LoginIdentifier" class="form-control" autofocus />
-                        <span asp-validation-for="LoginIdentifier" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <div class="input-group">
-                            <input asp-for="Password" id="loginPassword" class="form-control" style="border-right: 0;" />
-                            <button type="button" class="btn btn-subtle" id="toggleLoginPass" tabindex="-1"
-                                    style="border-radius: 0 var(--radius-control) var(--radius-control) 0;">
-                                <i class="bi bi-eye" id="loginPassIcon"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
-                    </div>
-
-                    <div class="form-check mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div class="form-check">
                         <input asp-for="RememberMe" type="checkbox" class="form-check-input" />
                         <label asp-for="RememberMe" class="form-check-label small text-secondary"></label>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn btn-gold-cta w-100 py-2">Sign In</button>
-                </form>
-            </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                    Sign In
+                </button>
+            </form>
+        </div>
+
+        <div class="px-4 py-3 bg-body-tertiary border-top text-center text-secondary small">
+            &copy; 2026 <strong>Orvanta</strong> &middot; Enterprise Workspace
         </div>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
-            const btn = document.getElementById('toggleLoginPass');
-            const input = document.getElementById('loginPassword');
-            const icon = document.getElementById('loginPassIcon');
+            var btn = document.getElementById('toggleLoginPassword');
+            var input = document.getElementById('loginPasswordInput');
+            var icon = document.getElementById('toggleLoginPasswordIcon');
 
-            btn?.addEventListener('click', function () {
-                if (!input || !icon) return;
-                const isPass = input.type === 'password';
-                input.type = isPass ? 'text' : 'password';
-                icon.className = isPass ? 'bi bi-eye-slash' : 'bi bi-eye';
+            if (!btn || !input || !icon) {
+                return;
+            }
+
+            btn.addEventListener('click', function () {
+                var isPassword = input.getAttribute('type') === 'password';
+                input.setAttribute('type', isPassword ? 'text' : 'password');
+                icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
             });
         })();
     </script>

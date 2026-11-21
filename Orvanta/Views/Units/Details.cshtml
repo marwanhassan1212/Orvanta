@@ -3,54 +3,63 @@
     ViewData["Title"] = Model.Name;
     ViewData["Subtitle"] = "Units";
     Layout = "_AdminLayout";
+
+    var canManage = User.IsInRole("Admin") || User.IsInRole("Manager");
 }
 
 @section PageActions {
-    <a asp-controller="Units" asp-action="Index" class="btn btn-subtle">Back</a>
-    <a asp-controller="Units" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary-dark">Edit</a>
+    <a asp-controller="Units" asp-action="Index" class="btn btn-outline-secondary">Back</a>
+    @if (canManage)
+    {
+        <a asp-controller="Units" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-dark">Edit</a>
+    }
 }
 
 <div class="row justify-content-center">
-    <div class="col-12 col-md-9 col-lg-7 col-xl-6">
-        <div class="data-card">
-            <div class="data-card-head d-flex align-items-center justify-content-between">
+    <div class="col-12 col-lg-9 col-xl-8">
+        <div class="card">
+            <div class="card-header bg-transparent d-flex align-items-center justify-content-between py-3">
                 <div>
-                    <h2 class="h6 fw-semibold mb-0">Unit Details</h2>
-                    <div class="text-secondary small">Measurement unit properties and usage</div>
+                    <h2 class="h6 fw-bold mb-0">Unit Details</h2>
+                    <div class="text-secondary small">Unit symbol, linked products count, and status</div>
                 </div>
                 @if (Model.IsActive)
                 {
-                    <span class="state-pill state-active">Active</span>
+                    <span class="badge text-bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">Active</span>
                 }
                 else
                 {
-                    <span class="state-pill state-inactive">Inactive</span>
+                    <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2">Inactive</span>
                 }
             </div>
-            <div class="data-card-body">
+
+            <div class="card-body">
                 <div class="row g-3">
                     <div class="col-sm-6">
-                        <div class="info-row-box">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Unit Name</div>
                             <div class="fw-semibold">@Model.Name</div>
                         </div>
                     </div>
+
                     <div class="col-sm-6">
-                        <div class="info-row-box">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Symbol</div>
-                            <div><span class="badge-role">@Model.Symbol</span></div>
+                            <div><code class="text-dark fw-semibold">@Model.Symbol</code></div>
                         </div>
                     </div>
+
                     <div class="col-sm-6">
-                        <div class="info-row-box">
-                            <div class="text-secondary small mb-1">Assigned Products</div>
-                            <div class="fs-5 fw-bold tabular-num">@Model.ProductsCount</div>
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
+                            <div class="text-secondary small mb-1">Products Count</div>
+                            <div class="fw-bold">@Model.ProductsCount</div>
                         </div>
                     </div>
+
                     <div class="col-sm-6">
-                        <div class="info-row-box">
+                        <div class="p-3 rounded-3 border bg-body-tertiary h-100">
                             <div class="text-secondary small mb-1">Unit ID</div>
-                            <div class="fs-5 fw-semibold tabular-num text-secondary">#@Model.Id</div>
+                            <div class="fw-semibold text-secondary">#@Model.Id</div>
                         </div>
                     </div>
                 </div>
